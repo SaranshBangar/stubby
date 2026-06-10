@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Stubby palette — burnt-orange accent on near-black surfaces, IBM Plex type.
+   Mirrors the claude.ai/design tokens. Dark is the default render (`.dark` is
+   set on <html> in layout.tsx); a `.light` variant ships for completeness. */
+@layer base {
+  :root {
+    /* ── Raw design tokens (hex/rgba) — consumed by Tailwind via the config ── */
+    --bg: #0a0a0c;
+    --s1: #111114;
+    --s2: #18181c;
+    --s3: #222228;
+    --s4: #2a2a32;
+    --b1: #282830;
+    --b2: #383842;
+    --t1: #eeeef0;
+    --t2: #888892;
+    --t3: #484852;
+    --accent: #f97316;
+    --accent-h: #fb923c;
+    --accent-dim: rgba(249, 115, 22, 0.13);
+    --green: #22c55e;
+    --green-dim: rgba(34, 197, 94, 0.11);
+    --red: #f87171;
+    --red-dim: rgba(248, 113, 113, 0.11);
+    --yellow: #fbbf24;
+    --yellow-dim: rgba(251, 191, 36, 0.11);
+    --code: #9ece6a; /* monospace body / JSON green */
+
+    /* ── shadcn HSL channel mapping (so ui/* primitives inherit the palette) ── */
+    --background: 240 9% 4%;
+    --foreground: 240 6% 94%;
+    --card: 240 8% 7%;
+    --card-foreground: 240 6% 94%;
+    --popover: 240 8% 7%;
+    --popover-foreground: 240 6% 94%;
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 8% 10%;
+    --secondary-foreground: 240 6% 94%;
+    --muted: 240 8% 10%;
+    --muted-foreground: 240 4% 55%;
+    --accent-color: 240 8% 15%;
+    --accent-foreground: 240 6% 94%;
+    --destructive: 0 91% 71%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --warning: 43 96% 56%;
+    --border: 240 9% 17%;
+    --input: 240 9% 17%;
+    --ring: 25 95% 53%;
+    --radius: 0.4375rem;
+  }
+
+  .light {
+    --bg: #f5f5f3;
+    --s1: #eeeeeb;
+    --s2: #e5e5e1;
+    --s3: #d8d8d3;
+    --s4: #cbcbc5;
+    --b1: #d0d0ca;
+    --b2: #b8b8b0;
+    --t1: #111112;
+    --t2: #606068;
+    --t3: #a0a0a8;
+    --background: 60 7% 96%;
+    --foreground: 240 4% 7%;
+    --card: 60 8% 93%;
+    --card-foreground: 240 4% 7%;
+    --popover: 60 8% 93%;
+    --popover-foreground: 240 4% 7%;
+    --secondary: 55 7% 90%;
+    --secondary-foreground: 240 4% 7%;
+    --muted: 55 7% 90%;
+    --muted-foreground: 232 6% 39%;
+    --accent-color: 50 7% 84%;
+    --accent-foreground: 240 4% 7%;
+    --border: 51 9% 80%;
+    --input: 51 9% 80%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.55;
+  }
+  ::selection {
+    background: var(--accent-dim);
+    color: var(--t1);
+  }
+  /* Slim scrollbars to match the tooling aesthetic. */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--b2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}

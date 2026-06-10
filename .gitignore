@@ -1,0 +1,19 @@
+node_modules/
+.next/
+.open-next/
+out/
+build/
+
+# Local secrets — NEVER commit
+.dev.vars
+.env
+.env*.local
+
+# Wrangler / Cloudflare
+.wrangler/
+src/cloudflare-env.d.ts
+
+# Misc
+.DS_Store
+*.log
+next-env.d.ts

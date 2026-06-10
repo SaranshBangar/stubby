@@ -1,0 +1,44 @@
+{
+  "name": "stubby",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./src/cloudflare-env.d.ts",
+    "db:migrate:local": "wrangler d1 migrations apply stubby-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply stubby-db --remote"
+  },
+  "dependencies": {
+    "next": "^15.5.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "stripe": "17.5.0",
+    "@radix-ui/react-slot": "1.1.1",
+    "@radix-ui/react-label": "2.1.1",
+    "@radix-ui/react-select": "2.1.4",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "tailwind-merge": "2.6.0",
+    "lucide-react": "0.469.0"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "^1.6.5",
+    "@cloudflare/workers-types": "^4.20250604.0",
+    "wrangler": "^4.86.0",
+    "typescript": "5.7.3",
+    "@types/node": "22.10.7",
+    "@types/react": "19.0.7",
+    "@types/react-dom": "19.0.3",
+    "tailwindcss": "3.4.17",
+    "postcss": "8.5.1",
+    "autoprefixer": "10.4.20",
+    "tailwindcss-animate": "1.0.7",
+    "eslint": "9.18.0",
+    "eslint-config-next": "^15.5.4"
+  }
+}

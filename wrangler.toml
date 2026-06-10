@@ -1,0 +1,34 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "stubby"
+# Custom entry wraps OpenNext's generated worker to add the cron scheduled()
+# handler. It imports .open-next/worker.js (produced by the build).
+main = "src/worker.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+
+# OpenNext emits static assets here.
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# ── D1 database binding ──────────────────────────────────────────────
+# Create with: wrangler d1 create stubby-db
+# Then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "stubby-db"
+database_id = "32deafec-a26e-4201-9fd9-e59be760c92c"
+migrations_dir = "migrations"
+
+# ── Single Cron Trigger ──────────────────────────────────────────────
+# Runs every minute. ONE trigger for ALL monitors (free tier allows 5
+# triggers max — never create one per monitor). The scheduled() handler
+# in src/worker.ts queries all "due" monitors and pings them in a loop.
+[triggers]
+crons = ["* * * * *"]
+
+# ── Public (non-secret) vars ─────────────────────────────────────────
+# Secrets (RESEND_API_KEY, STRIPE_*) go in .dev.vars locally and via
+# `wrangler secret put NAME` in production — NOT here.
+[vars]
+APP_URL = "http://localhost:3000"
