@@ -1,5 +1,11 @@
 import { sendEmail } from "@/lib/email";
-import { getCronConcurrency, getPingTimeoutMs, getLimits } from "@/config/limits";
+import { checkSslCertificate } from "@/lib/ssl";
+import {
+  getCronConcurrency,
+  getPingTimeoutMs,
+  getLimits,
+  SSL_EVENTS_HISTORY_LIMIT,
+} from "@/config/limits";
 import type { MonitorRow } from "@/lib/types";
 
 /**
@@ -263,7 +269,179 @@ async function processMonitor(
     alertSent = sent;
   }
 
+  // ── SSL inspection (HTTPS only). Fully independent of the uptime result:
+  // a TLS problem must never mark the monitor down, and an inspection crash
+  // must never lose the check we just recorded. ──
+  if (m.target_url.startsWith("https://")) {
+    try {
+      if (await processSslCheck(db, env, m, now, timeoutMs)) alertSent = true;
+    } catch (e) {
+      console.error(`[cron] ssl check failed for ${m.id}`, e);
+    }
+  }
+
   return { ok: nowUp, alertSent };
+}
+
+/**
+ * Inspect the monitor's TLS certificate, persist the result, and send the
+ * tiered expiry/invalid alerts. Returns true if any alert email went out.
+ *
+ * Alert ladder: one email per threshold (30/14/7 days). If a cert is first
+ * seen already inside a lower threshold we send only the most urgent email
+ * and mark the higher thresholds as sent too — never three emails at once.
+ * All flags reset once days_remaining climbs back above 30 (cert renewed).
+ */
+async function processSslCheck(
+  db: D1Database,
+  env: CronEnv,
+  m: MonitorRow,
+  now: number,
+  timeoutMs: number,
+): Promise<boolean> {
+  const url = new URL(m.target_url);
+  const port = url.port ? parseInt(url.port, 10) : 443;
+  const result = await checkSslCertificate(url.hostname, port, timeoutMs);
+
+  // Runtime can't introspect TLS (e.g. local workerd without node:tls) —
+  // skip silently rather than recording a misleading "invalid" event.
+  if (!result.supported) return false;
+
+  const daysRemaining =
+    result.validTo != null
+      ? Math.floor((result.validTo - now) / 86_400_000)
+      : null;
+
+  await db
+    .prepare(
+      `UPDATE monitors
+          SET ssl_expiry_date=?1, ssl_last_checked_at=?2, ssl_issuer=?3, ssl_days_remaining=?4
+        WHERE id=?5`,
+    )
+    .bind(result.validTo, now, result.issuer, daysRemaining, m.id)
+    .run();
+
+  await db
+    .prepare(
+      `INSERT INTO ssl_events (id, monitor_id, checked_at, days_remaining, issuer, valid, error)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
+    )
+    .bind(
+      crypto.randomUUID(),
+      m.id,
+      now,
+      daysRemaining,
+      result.issuer,
+      result.valid ? 1 : 0,
+      result.error,
+    )
+    .run();
+
+  await db
+    .prepare(
+      `DELETE FROM ssl_events
+        WHERE monitor_id = ?1
+          AND id NOT IN (
+            SELECT id FROM ssl_events WHERE monitor_id = ?1
+            ORDER BY checked_at DESC LIMIT ?2
+          )`,
+    )
+    .bind(m.id, SSL_EVENTS_HISTORY_LIMIT)
+    .run();
+
+  const domain = url.hostname;
+  const appUrl = env.APP_URL ?? "";
+  let sent = false;
+
+  if (!result.valid) {
+    if (m.ssl_invalid_alerted !== 1) {
+      const expired = daysRemaining != null && daysRemaining < 0;
+      const email = expired
+        ? sslExpiredEmail(domain, appUrl)
+        : sslInvalidEmail(domain, result.error ?? "Unknown TLS error", appUrl);
+      const res = await sendEmail(env, { to: m.alert_email, ...email });
+      sent = res.ok;
+      await db
+        .prepare("UPDATE monitors SET ssl_invalid_alerted=1 WHERE id=?1")
+        .bind(m.id)
+        .run();
+    }
+    return sent;
+  }
+
+  // Cert is valid again — clear the invalid flag so a future breakage alerts.
+  if (m.ssl_invalid_alerted === 1) {
+    await db
+      .prepare("UPDATE monitors SET ssl_invalid_alerted=0 WHERE id=?1")
+      .bind(m.id)
+      .run();
+  }
+
+  if (daysRemaining == null) return sent;
+
+  if (daysRemaining > 30) {
+    // Renewed — re-arm all expiry thresholds.
+    if (m.ssl_alert_sent_30 === 1 || m.ssl_alert_sent_14 === 1 || m.ssl_alert_sent_7 === 1) {
+      await db
+        .prepare(
+          "UPDATE monitors SET ssl_alert_sent_30=0, ssl_alert_sent_14=0, ssl_alert_sent_7=0 WHERE id=?1",
+        )
+        .bind(m.id)
+        .run();
+    }
+    return sent;
+  }
+
+  let flagsSql: string | null = null;
+  if (daysRemaining <= 7 && m.ssl_alert_sent_7 !== 1) {
+    flagsSql = "ssl_alert_sent_7=1, ssl_alert_sent_14=1, ssl_alert_sent_30=1";
+  } else if (daysRemaining <= 14 && m.ssl_alert_sent_14 !== 1) {
+    flagsSql = "ssl_alert_sent_14=1, ssl_alert_sent_30=1";
+  } else if (daysRemaining <= 30 && m.ssl_alert_sent_30 !== 1) {
+    flagsSql = "ssl_alert_sent_30=1";
+  }
+  if (flagsSql) {
+    const res = await sendEmail(env, {
+      to: m.alert_email,
+      ...sslExpiryWarningEmail(domain, daysRemaining, appUrl),
+    });
+    sent = res.ok || sent;
+    await db
+      .prepare(`UPDATE monitors SET ${flagsSql} WHERE id=?1`)
+      .bind(m.id)
+      .run();
+  }
+
+  return sent;
+}
+
+// ── SSL alert email templates ──────────────────────────────────────────
+
+function sslExpiryWarningEmail(domain: string, days: number, appUrl: string) {
+  return {
+    subject: `SSL cert for ${domain} expires in ${days} day${days === 1 ? "" : "s"}`,
+    html: `<p>The SSL certificate for <strong>${domain}</strong> expires in <strong>${days} day${days === 1 ? "" : "s"}</strong>.</p>
+       <p>Once it expires, browsers will show a security warning and refuse to load the site. Renew the certificate before then (most providers, like Let's Encrypt, renew automatically — this may mean the automation is broken).</p>
+       <p style="color:#888">Monitored by Stubby. <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
+  };
+}
+
+function sslExpiredEmail(domain: string, appUrl: string) {
+  return {
+    subject: `SSL cert for ${domain} has expired`,
+    html: `<p>The SSL certificate for <strong>${domain}</strong> <strong>has expired</strong>.</p>
+       <p>Visitors are now seeing browser security warnings and most clients will refuse to connect. Renew the certificate as soon as possible.</p>
+       <p style="color:#888">You'll only get this email once per incident. — Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
+  };
+}
+
+function sslInvalidEmail(domain: string, error: string, appUrl: string) {
+  return {
+    subject: `SSL certificate error on ${domain}`,
+    html: `<p>The SSL certificate for <strong>${domain}</strong> failed validation: <code>${error}</code></p>
+       <p>This usually means a broken certificate chain, a self-signed cert, or a hostname mismatch. Clients that validate certificates (browsers, most HTTP libraries) will refuse to connect.</p>
+       <p style="color:#888">You'll only get this email once per incident. — Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
+  };
 }
 
 async function sendTransitionEmail(

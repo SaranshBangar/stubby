@@ -5,6 +5,7 @@ import type { MonitorRow, CheckRow } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sparkline } from "@/components/Sparkline";
+import { SslBadge, SslSection } from "@/components/SslSection";
 
 function ago(ts: number | null): string {
   if (ts == null) return "never";
@@ -22,6 +23,7 @@ function MonitorItem({
   onDeleted: (id: string) => void;
 }) {
   const [checks, setChecks] = useState<CheckRow[]>([]);
+  const [showSsl, setShowSsl] = useState(false);
 
   useEffect(() => {
     apiFetch<{ checks: CheckRow[] }>(`/api/monitors/${m.id}/checks`)
@@ -35,6 +37,7 @@ function MonitorItem({
     <li className="rounded-lg border border-border p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant={up ? "up" : "down"}>{up ? "UP" : "DOWN"}</Badge>
+        <SslBadge m={m} />
         <code className="flex-1 truncate font-mono text-sm">{m.target_url}</code>
         <span className="text-xs text-muted-foreground">
           every {m.interval_minutes}m · checked {ago(m.last_checked_at)}
@@ -47,6 +50,15 @@ function MonitorItem({
           <span className="font-mono text-xs text-muted-foreground">
             {m.last_status != null ? `HTTP ${m.last_status}` : "—"}
           </span>
+          {m.target_url.startsWith("https://") && (
+            <Button
+              variant={showSsl ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setShowSsl((p) => !p)}
+            >
+              SSL
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -61,6 +73,8 @@ function MonitorItem({
           </Button>
         </div>
       </div>
+
+      {showSsl && <SslSection m={m} />}
     </li>
   );
 }

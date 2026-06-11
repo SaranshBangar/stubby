@@ -23,6 +23,25 @@ export interface MonitorRow {
   alert_email: string;
   created_at: number;
   expires_at: number | null;
+  // SSL certificate tracking (NULL until the first HTTPS check).
+  ssl_expiry_date: number | null;
+  ssl_last_checked_at: number | null;
+  ssl_issuer: string | null;
+  ssl_days_remaining: number | null;
+  ssl_alert_sent_30: number; // 0/1
+  ssl_alert_sent_14: number; // 0/1
+  ssl_alert_sent_7: number; // 0/1
+  ssl_invalid_alerted: number; // 0/1
+}
+
+export interface SslEventRow {
+  id: string;
+  monitor_id: string;
+  checked_at: number;
+  days_remaining: number | null;
+  issuer: string | null;
+  valid: number; // 0/1
+  error: string | null;
 }
 
 export interface CheckRow {
