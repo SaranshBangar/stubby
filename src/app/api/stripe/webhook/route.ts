@@ -2,8 +2,6 @@ import type Stripe from "stripe";
 import { getDB, getEnv } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 
-export const runtime = "edge";
-
 /**
  * ★ STRIPE FLOW — steps 2 & 3 (webhook: unlock / revoke Pro).
  *

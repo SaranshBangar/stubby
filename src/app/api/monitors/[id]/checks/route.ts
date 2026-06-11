@@ -4,8 +4,6 @@ import { ok, unauthorized, notFound } from "@/lib/http";
 import { getLimitsForToken } from "@/lib/tier";
 import type { CheckRow } from "@/lib/types";
 
-export const runtime = "edge";
-
 type Ctx = { params: Promise<{ id: string }> };
 
 // GET /api/monitors/:id/checks — recent check history, newest first.

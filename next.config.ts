@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 
 // OpenNext Cloudflare: initialize dev bindings so `next dev` can read D1, etc.
-// This is a no-op in production. Safe to keep.
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-initOpenNextCloudflareForDev();
+// Guarded to development only — it spawns `workerd`, which must NOT run during
+// a production `next build` (e.g. on a CI image with an older glibc).
+if (process.env.NODE_ENV === "development") {
+  import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) =>
+    initOpenNextCloudflareForDev(),
+  );
+}

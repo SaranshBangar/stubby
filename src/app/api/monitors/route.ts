@@ -5,8 +5,6 @@ import { getLimitsForToken, computeExpiresAt, clampInterval } from "@/lib/tier";
 import { INTERVAL_CHOICES } from "@/config/limits";
 import type { MonitorRow } from "@/lib/types";
 
-export const runtime = "edge";
-
 // GET /api/monitors — list this token's monitors.
 export async function GET(req: Request) {
   const token = getTokenFromRequest(req);

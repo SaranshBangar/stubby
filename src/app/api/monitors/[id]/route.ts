@@ -5,8 +5,6 @@ import { getLimitsForToken, clampInterval } from "@/lib/tier";
 import { INTERVAL_CHOICES } from "@/config/limits";
 import type { MonitorRow } from "@/lib/types";
 
-export const runtime = "edge";
-
 type Ctx = { params: Promise<{ id: string }> };
 
 async function owned(db: D1Database, id: string, token: string) {

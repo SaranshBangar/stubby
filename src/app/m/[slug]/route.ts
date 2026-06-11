@@ -4,7 +4,6 @@ import type { MockRow } from "@/lib/types";
 // ★ The public mock responder. Devs hit this URL; it replays the stored
 // status / headers / body after the optional delay. Responds to ALL methods
 // (devs mock POST/PUT/DELETE too) — one handler, exported under each verb.
-export const runtime = "edge";
 
 async function respond(slug: string): Promise<Response> {
   const db = getDB();

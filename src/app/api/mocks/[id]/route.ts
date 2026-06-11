@@ -3,8 +3,6 @@ import { getTokenFromRequest } from "@/lib/token";
 import { ok, badRequest, unauthorized, notFound } from "@/lib/http";
 import type { MockRow } from "@/lib/types";
 
-export const runtime = "edge";
-
 type Ctx = { params: Promise<{ id: string }> };
 
 // All ops verify owner_token matches — a token can only touch its own rows.

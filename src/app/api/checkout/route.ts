@@ -3,8 +3,6 @@ import { getTokenFromRequest } from "@/lib/token";
 import { ok, unauthorized, badRequest } from "@/lib/http";
 import { getStripe } from "@/lib/stripe";
 
-export const runtime = "edge";
-
 /**
  * ★ STRIPE FLOW — step 1 of 3 (create Checkout session).
  *

@@ -6,6 +6,11 @@ main = "src/worker.ts"
 compatibility_date = "2024-12-30"
 compatibility_flags = ["nodejs_compat"]
 
+# Keep the *.workers.dev URL live alongside the custom domain. Once stubby.site
+# is active on Cloudflare you can set this to false to make the custom domain
+# the only entry point.
+workers_dev = true
+
 # OpenNext emits static assets here.
 [assets]
 directory = ".open-next/assets"
@@ -20,6 +25,15 @@ database_name = "stubby-db"
 database_id = "32deafec-a26e-4201-9fd9-e59be760c92c"
 migrations_dir = "migrations"
 
+# ── Custom domain ────────────────────────────────────────────────────
+# stubby.site must be an active zone in this Cloudflare account. Wrangler
+# provisions the hostname + TLS cert on deploy. The workers.dev URL keeps
+# working alongside this. Uses the [[routes]] table form so it is scoped to
+# the worker, not the preceding [[d1_databases]] block.
+[[routes]]
+pattern = "stubby.site"
+custom_domain = true
+
 # ── Single Cron Trigger ──────────────────────────────────────────────
 # Runs every minute. ONE trigger for ALL monitors (free tier allows 5
 # triggers max — never create one per monitor). The scheduled() handler
@@ -31,4 +45,4 @@ crons = ["* * * * *"]
 # Secrets (RESEND_API_KEY, STRIPE_*) go in .dev.vars locally and via
 # `wrangler secret put NAME` in production — NOT here.
 [vars]
-APP_URL = "http://localhost:3000"
+APP_URL = "https://stubby.site"

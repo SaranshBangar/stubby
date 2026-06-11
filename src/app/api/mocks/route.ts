@@ -5,8 +5,7 @@ import { getLimitsForToken, computeExpiresAt } from "@/lib/tier";
 import { generateSlug, isValidSlug } from "@/lib/slug";
 import type { MockRow } from "@/lib/types";
 
-// Edge-friendly. No Node APIs. Keep work minimal (CPU budget).
-export const runtime = "edge";
+// No Node APIs; keep work minimal (CPU budget). Runs on the Workers runtime.
 
 // GET /api/mocks — list this token's mocks (newest first).
 export async function GET(req: Request) {
