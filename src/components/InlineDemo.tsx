@@ -49,7 +49,7 @@ export function InlineDemo() {
   }
 
   return (
-    <div className="grid grid-cols-1 overflow-hidden rounded-md border border-b1 bg-s1 md:grid-cols-2">
+    <div className="grid grid-cols-1 overflow-hidden rounded-md border border-b1 bg-s1 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.55)] md:grid-cols-2">
       {/* LEFT — form */}
       <div className="border-b border-b1 md:border-b-0 md:border-r">
         <div className="flex items-center gap-1.5 border-b border-b1 bg-s2 px-3.5 py-2.5">
@@ -90,7 +90,7 @@ export function InlineDemo() {
         <div className="flex items-center gap-1.5 border-b border-b1 bg-s2 px-3.5 py-2.5">
           <span className="font-mono text-[11px] text-t3">result</span>
           {url && (
-            <span className="ml-auto font-mono text-[11px] text-success">
+            <span className="pulse ml-auto font-mono text-[11px] text-success">
               ● live
             </span>
           )}

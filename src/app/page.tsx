@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { InlineDemo } from "@/components/InlineDemo";
@@ -26,47 +27,79 @@ export default function Home() {
 
       <main>
         {/* ── Hero ── */}
-        <section className="mx-auto max-w-[1160px] px-6 pb-12 pt-20 text-center">
-          <div className="mb-7 inline-flex items-center gap-2 rounded-[2px] border border-b1 px-3 py-[5px] font-mono text-xs text-t3">
-            <span className="text-brand">$</span> stubby --no-signup
-          </div>
-
-          <h1 className="mx-auto text-balance text-[clamp(38px,5.5vw,68px)] font-semibold leading-[1.05] tracking-tight text-t1">
-            Mock endpoints.
-            <br />
-            Monitor uptime.
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-[560px] text-balance text-[clamp(15px,1.5vw,18px)] leading-relaxed text-t2">
-            Paste JSON, get a stable URL. Enter any URL, get emailed if it goes
-            down. No account, no extension, no noise.
-          </p>
-
-          <div className="mt-8 flex flex-col items-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/mock">Open the tool →</Link>
-            </Button>
-            <span className="font-mono text-xs text-t3">
-              free forever · no signup required
-            </span>
-          </div>
-
-          <div className="mt-10 flex flex-wrap justify-center gap-6">
-            {NO_LIST.map((item) => (
-              <div
-                key={item}
-                className="flex items-center gap-1.5 text-[13px] text-t3"
-              >
-                <span className="text-brand">✓</span> {item}
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-14 text-left">
-            <div className="mb-4 text-center font-mono text-[11px] tracking-wider text-t3">
-              — LIVE DEMO —
+        <section className="hero-bg px-6 pb-12 pt-20 text-center">
+          <div className="mx-auto max-w-[1160px]">
+            <div className="mb-7 inline-flex items-center gap-2 rounded-[2px] border border-b1 bg-background px-3 py-[5px] font-mono text-xs text-t3">
+              <span className="text-brand">$</span> stubby --no-signup
             </div>
-            <InlineDemo />
+
+            <h1 className="mx-auto text-balance text-[clamp(38px,5.5vw,68px)] font-semibold leading-[1.05] tracking-tight text-t1">
+              Mock endpoints<span className="text-brand">.</span>
+              <br />
+              Monitor uptime<span className="text-brand">.</span>
+            </h1>
+
+            <p className="mx-auto mt-5 max-w-[560px] text-balance text-[clamp(15px,1.5vw,18px)] leading-relaxed text-t2">
+              Paste JSON, get a stable URL. Enter any URL, get emailed if it goes
+              down. No account, no extension, no noise.
+            </p>
+
+            <div className="mt-8 flex flex-col items-center gap-3">
+              <Button asChild size="lg">
+                <Link href="/mock">Open the tool →</Link>
+              </Button>
+              <span className="font-mono text-xs text-t3">
+                free forever · no signup required
+              </span>
+            </div>
+
+            <div className="mt-10 flex flex-wrap justify-center gap-6">
+              {NO_LIST.map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center gap-1.5 text-[13px] text-t3"
+                >
+                  <span className="text-brand">✓</span> {item}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-14 text-left">
+              <div className="mb-4 text-center font-mono text-[11px] tracking-wider text-t3">
+                — LIVE DEMO —
+              </div>
+              <InlineDemo />
+            </div>
+          </div>
+        </section>
+
+        {/* ── How it works ── */}
+        <section className="mx-auto max-w-[1160px] px-6 pt-10">
+          <div className="grid items-center gap-5 sm:grid-cols-[1fr_auto_1fr_auto_1fr]">
+            {[
+              { n: "01", t: "Paste your JSON", d: "or enter a URL to monitor" },
+              { n: "02", t: "Copy your URL", d: "live instantly — no signup" },
+              { n: "03", t: "Move on", d: "that's the whole product" },
+            ].map((s, i, arr) => (
+              <Fragment key={s.n}>
+                <div className="flex items-baseline gap-3.5">
+                  <span className="font-mono text-[13px] text-brand">{s.n}</span>
+                  <div>
+                    <div className="text-[15px] font-semibold tracking-tight text-t1">
+                      {s.t}
+                    </div>
+                    <div className="mt-0.5 font-mono text-[12.5px] text-t3">
+                      {s.d}
+                    </div>
+                  </div>
+                </div>
+                {i < arr.length - 1 && (
+                  <span className="hidden font-mono text-[15px] text-t3 sm:inline">
+                    →
+                  </span>
+                )}
+              </Fragment>
+            ))}
           </div>
         </section>
 
@@ -130,26 +163,33 @@ export default function Home() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 {
+                  n: "01",
                   label: "Zero account",
                   detail:
                     'Open the tool, use it. No email verification, no "set up your workspace."',
                 },
                 {
+                  n: "02",
                   label: "Permanent URLs",
                   detail: `Free URLs live for ${free.expiryDays} days. Pro URLs never expire — bookmark them, share them, hardcode them.`,
                 },
                 {
+                  n: "03",
                   label: "Two things, both great",
                   detail:
                     "We don't do analytics, auth mocking, load testing, or 47 other features you'll never touch.",
                 },
                 {
+                  n: "04",
                   label: "Loads in < 1 second",
                   detail:
                     "No megabyte JS bundle. No tracking scripts. No cookie banner. Just the tool.",
                 },
               ].map((p) => (
                 <div key={p.label} className="border-l-2 border-brand pl-4">
+                  <div className="mb-1.5 font-mono text-[11px] tracking-wider text-brand">
+                    {p.n}
+                  </div>
                   <div className="mb-1.5 text-[15px] font-semibold text-t1">
                     {p.label}
                   </div>
@@ -244,11 +284,16 @@ export default function Home() {
       {/* ── Footer ── */}
       <footer className="mt-auto border-t border-b1 px-6 py-6">
         <div className="mx-auto flex max-w-[1160px] flex-wrap items-center justify-between gap-3">
-          <span className="font-mono text-[13px]">
-            <span className="text-brand">stub</span>
-            <span className="text-t3">by</span>
-            <span className="ml-3 text-[11px] text-t3">© 2026</span>
-          </span>
+          <div className="flex flex-wrap items-baseline gap-3.5">
+            <span className="font-mono text-[13px] whitespace-nowrap">
+              <span className="text-brand">stub</span>
+              <span className="text-t3">by</span>
+              <span className="ml-3 text-[11px] text-t3">© 2026</span>
+            </span>
+            <span className="font-mono text-[11px] text-t3">
+              built for developers with other things to do
+            </span>
+          </div>
           <nav className="flex gap-6 font-mono text-xs text-t3">
             <Link href="/monitor" className="hover:text-t1">
               Status

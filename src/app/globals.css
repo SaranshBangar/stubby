@@ -109,3 +109,59 @@
     background: transparent;
   }
 }
+
+/* Hero texture: faint dot grid + an orange glow, both masked to the top so the
+   hero feels lit from above without distracting from the content. */
+.hero-bg {
+  position: relative;
+}
+.hero-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--b2) 1px, transparent 1.5px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 55% at 50% 0%,
+    black 20%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 55% at 50% 0%,
+    black 20%,
+    transparent 72%
+  );
+  opacity: 0.5;
+  pointer-events: none;
+}
+.hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 55% 38% at 50% 0%,
+    rgba(249, 115, 22, 0.06),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+.hero-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Slow pulse for the "live" indicator. Respects reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes stubby-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+  .pulse {
+    animation: stubby-pulse 2.2s ease-in-out infinite;
+  }
+}
