@@ -1,4 +1,4 @@
-import { sendEmail } from "@/lib/email";
+import { sendAlert, type AlertEvent } from "@/lib/alerts";
 import { checkSslCertificate } from "@/lib/ssl";
 import {
   getCronConcurrency,
@@ -6,6 +6,7 @@ import {
   getLimits,
   SSL_EVENTS_HISTORY_LIMIT,
   KEYWORD_BODY_MAX_BYTES,
+  ALERT_DELIVERY_LOG_LIMIT,
 } from "@/config/limits";
 import type { MonitorRow } from "@/lib/types";
 
@@ -49,7 +50,8 @@ export interface CronResult {
  * scheduled job lives here (free tier caps cron triggers at 5/account, so
  * we never add another trigger):
  *   1. the monitor uptime loop (runMonitorCron),
- *   2. webhook inspector retention (expired endpoints + overflow requests).
+ *   2. webhook inspector retention (expired endpoints + overflow requests),
+ *   3. alert delivery log pruning.
  * Each step is independently try/caught — one failing subsystem must not
  * starve the others.
  */
@@ -68,7 +70,40 @@ export async function runCron(env: CronEnv): Promise<CronResult> {
     console.error("[cron] webhook retention failed", e);
   }
 
+  try {
+    await pruneAlertDeliveryLog(env);
+  } catch (e) {
+    console.error("[cron] alert log pruning failed", e);
+  }
+
   return result;
+}
+
+// Keep alert_delivery_log bounded: newest N rows per channel.
+async function pruneAlertDeliveryLog(env: CronEnv): Promise<void> {
+  const db = env.DB;
+  const { results } = await db
+    .prepare(
+      `SELECT channel_id FROM alert_delivery_log
+        GROUP BY channel_id
+       HAVING COUNT(*) > ?1`,
+    )
+    .bind(ALERT_DELIVERY_LOG_LIMIT)
+    .all<{ channel_id: string }>();
+
+  for (const { channel_id } of results ?? []) {
+    await db
+      .prepare(
+        `DELETE FROM alert_delivery_log
+          WHERE channel_id = ?1
+            AND id NOT IN (
+              SELECT id FROM alert_delivery_log WHERE channel_id = ?1
+              ORDER BY attempted_at DESC LIMIT ?2
+            )`,
+      )
+      .bind(channel_id, ALERT_DELIVERY_LOG_LIMIT)
+      .run();
+  }
 }
 
 /**
@@ -304,11 +339,21 @@ async function processMonitor(
     // Swallow — reporting this monitor as processed; next tick retries.
   }
 
-  // ── Alert on transition only. ──
+  // ── Alert on transition only (email + linked channels via sendAlert). ──
   let alertSent = false;
   if (transition) {
-    const sent = await sendTransitionEmail(env, m, nowUp, statusCode);
-    alertSent = sent;
+    const event: AlertEvent = nowUp
+      ? "up"
+      : failureReason != null
+        ? "keyword_failure"
+        : "down";
+    const statusText =
+      statusCode != null ? `HTTP ${statusCode}` : "no response (timeout)";
+    alertSent = await sendAlert(db, env, m, {
+      event,
+      details: failureReason ?? statusText,
+      ...transitionEmail(env, m, nowUp, failureReason ?? statusText),
+    });
   }
 
   // ── SSL inspection (HTTPS only). Fully independent of the uptime result:
@@ -401,8 +446,14 @@ async function processSslCheck(
       const email = expired
         ? sslExpiredEmail(domain, appUrl)
         : sslInvalidEmail(domain, result.error ?? "Unknown TLS error", appUrl);
-      const res = await sendEmail(env, { to: m.alert_email, ...email });
-      sent = res.ok;
+      sent = await sendAlert(db, env, m, {
+        event: expired ? "ssl_expired" : "ssl_invalid",
+        details: expired
+          ? `SSL certificate for ${domain} has expired`
+          : `SSL certificate error on ${domain}: ${result.error ?? "unknown"}`,
+        emailSubject: email.subject,
+        emailHtml: email.html,
+      });
       await db
         .prepare("UPDATE monitors SET ssl_invalid_alerted=1 WHERE id=?1")
         .bind(m.id)
@@ -443,11 +494,14 @@ async function processSslCheck(
     flagsSql = "ssl_alert_sent_30=1";
   }
   if (flagsSql) {
-    const res = await sendEmail(env, {
-      to: m.alert_email,
-      ...sslExpiryWarningEmail(domain, daysRemaining, appUrl),
+    const email = sslExpiryWarningEmail(domain, daysRemaining, appUrl);
+    const ok = await sendAlert(db, env, m, {
+      event: "ssl_expiry",
+      details: `SSL certificate for ${domain} expires in ${daysRemaining} day${daysRemaining === 1 ? "" : "s"}`,
+      emailSubject: email.subject,
+      emailHtml: email.html,
     });
-    sent = res.ok || sent;
+    sent = ok || sent;
     await db
       .prepare(`UPDATE monitors SET ${flagsSql} WHERE id=?1`)
       .bind(m.id)
@@ -507,24 +561,21 @@ async function readBodyCapped(res: Response, maxBytes: number): Promise<string> 
   return out;
 }
 
-async function sendTransitionEmail(
+function transitionEmail(
   env: CronEnv,
   m: MonitorRow,
   nowUp: boolean,
-  statusCode: number | null,
-): Promise<boolean> {
+  statusText: string,
+): { emailSubject: string; emailHtml: string } {
   const appUrl = env.APP_URL ?? "";
-  const statusText = statusCode != null ? `HTTP ${statusCode}` : "no response (timeout)";
-  const subject = nowUp
+  const emailSubject = nowUp
     ? `✅ Recovered: ${m.target_url}`
     : `🔴 Down: ${m.target_url}`;
-  const html = nowUp
+  const emailHtml = nowUp
     ? `<p>Good news — <a href="${m.target_url}">${m.target_url}</a> is back up (${statusText}).</p>
        <p style="color:#888">Monitored by Stubby. ${appUrl}/monitor</p>`
     : `<p><strong><a href="${m.target_url}">${m.target_url}</a> is down.</strong></p>
        <p>Last check returned ${statusText}.</p>
        <p style="color:#888">You'll get another email when it recovers. — Stubby ${appUrl}/monitor</p>`;
-
-  const res = await sendEmail(env, { to: m.alert_email, subject, html });
-  return res.ok;
+  return { emailSubject, emailHtml };
 }

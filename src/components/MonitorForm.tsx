@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
-import type { MonitorRow } from "@/lib/types";
+import type { AlertChannelRow, MonitorRow } from "@/lib/types";
 import { INTERVAL_CHOICES } from "@/config/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,8 +29,25 @@ export function MonitorForm({
   const [keywordMode, setKeywordMode] = useState<"must_contain" | "must_not_contain">(
     "must_contain",
   );
+  const [channels, setChannels] = useState<AlertChannelRow[]>([]);
+  const [channelIds, setChannelIds] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiFetch<{ channels: AlertChannelRow[] }>("/api/alert-channels")
+      .then((d) => setChannels(d.channels))
+      .catch(() => setChannels([]));
+  }, []);
+
+  function toggleChannel(id: string, on: boolean) {
+    setChannelIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,6 +65,7 @@ export function MonitorForm({
             keyword_check_enabled: keywordEnabled,
             keyword_check_string: keywordEnabled ? keyword : undefined,
             keyword_check_mode: keywordEnabled ? keywordMode : undefined,
+            channel_ids: Array.from(channelIds),
           }),
         },
       );
@@ -158,6 +176,29 @@ export function MonitorForm({
           </div>
         )}
       </div>
+
+      {channels.length > 0 && (
+        <div className="space-y-2">
+          <Label>Also alert these channels</Label>
+          {channels.map((c) => (
+            <label
+              key={c.id}
+              className="flex cursor-pointer items-center gap-2 text-sm"
+            >
+              <input
+                type="checkbox"
+                className="accent-[var(--accent)]"
+                checked={channelIds.has(c.id)}
+                onChange={(e) => toggleChannel(c.id, e.target.checked)}
+              />
+              {c.label}
+              <span className="font-mono text-xs text-muted-foreground">
+                ({c.type})
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-destructive" role="alert">

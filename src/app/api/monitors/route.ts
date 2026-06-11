@@ -66,9 +66,28 @@ export async function POST(req: Request) {
     }
   }
 
+  // Optional alert channel links.
+  const channelIds: string[] = Array.isArray(body.channel_ids)
+    ? body.channel_ids.map((c) => String(c))
+    : [];
+
   const db = getDB();
   const env = getEnv();
   const { limits } = await getLimitsForToken(db, token, env);
+
+  // Channels must belong to this token.
+  if (channelIds.length > 0) {
+    const placeholders = channelIds.map((_, i) => `?${i + 2}`).join(",");
+    const owned = await db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM alert_channels WHERE owner_token = ?1 AND id IN (${placeholders})`,
+      )
+      .bind(token, ...channelIds)
+      .first<{ n: number }>();
+    if ((owned?.n ?? 0) !== channelIds.length) {
+      return badRequest("One or more alert channels do not exist");
+    }
+  }
 
   // Enforce count limit.
   const countRow = await db
@@ -108,6 +127,15 @@ export async function POST(req: Request) {
       keywordMode,
     )
     .run();
+
+  for (const channelId of channelIds) {
+    await db
+      .prepare(
+        "INSERT INTO monitor_alert_channels (monitor_id, channel_id) VALUES (?1, ?2)",
+      )
+      .bind(id, channelId)
+      .run();
+  }
 
   const row = await db
     .prepare("SELECT * FROM monitors WHERE id = ?1")

@@ -41,6 +41,17 @@ export interface MonitorRow {
 
 export type KeywordCheckMode = "must_contain" | "must_not_contain";
 
+export type AlertChannelType = "slack" | "discord" | "webhook";
+
+export interface AlertChannelRow {
+  id: string;
+  owner_token: string;
+  type: AlertChannelType;
+  label: string;
+  url: string;
+  created_at: number;
+}
+
 export interface SslEventRow {
   id: string;
   monitor_id: string;

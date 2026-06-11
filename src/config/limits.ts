@@ -42,6 +42,8 @@ export interface Limits {
   maxMonitorsPerStatusPage: number;
   /** Status pages: whether the "Powered by" badge can be hidden. */
   canHidePoweredBy: boolean;
+  /** Alert channels (Slack/Discord/webhook) a token may save. */
+  maxAlertChannels: number;
 }
 
 // Allowed interval choices surfaced in the UI. Free clamps to >= its floor.
@@ -68,6 +70,7 @@ export function getLimits(
       // = PRO_MAX_MONITORS: a Pro page can show every monitor the tier allows.
       maxMonitorsPerStatusPage: intFromEnv(env, "PRO_MAX_MONITORS", 25),
       canHidePoweredBy: true,
+      maxAlertChannels: intFromEnv(env, "PRO_MAX_ALERT_CHANNELS", 25),
     };
   }
   return {
@@ -85,6 +88,7 @@ export function getLimits(
     maxStatusPages: intFromEnv(env, "FREE_MAX_STATUS_PAGES", 1),
     maxMonitorsPerStatusPage: intFromEnv(env, "FREE_STATUS_PAGE_MONITORS", 5),
     canHidePoweredBy: false,
+    maxAlertChannels: intFromEnv(env, "FREE_MAX_ALERT_CHANNELS", 3),
   };
 }
 
@@ -97,6 +101,9 @@ export const SSL_EVENTS_HISTORY_LIMIT = 30;
 
 // Keyword checks: read at most this much of the response body (memory cap).
 export const KEYWORD_BODY_MAX_BYTES = 500 * 1024;
+
+// alert_delivery_log rows retained per channel (pruned in the cron).
+export const ALERT_DELIVERY_LOG_LIMIT = 500;
 
 // Cron tuning.
 export function getCronConcurrency(env?: Record<string, unknown>): number {

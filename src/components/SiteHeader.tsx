@@ -18,6 +18,7 @@ const TABS = [
   { href: "/monitor", label: "Uptime Monitors" },
   { href: "/webhook", label: "Webhooks" },
   { href: "/statuspage", label: "Status Pages" },
+  { href: "/alerts", label: "Alerts" },
 ];
 
 /**

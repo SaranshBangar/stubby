@@ -110,6 +110,35 @@ export async function PUT(req: Request, { params }: Ctx) {
     )
     .run();
 
+  // Replace alert channel links when the request includes them.
+  if (Array.isArray(body.channel_ids)) {
+    const channelIds = body.channel_ids.map((c) => String(c));
+    if (channelIds.length > 0) {
+      const placeholders = channelIds.map((_, i) => `?${i + 2}`).join(",");
+      const ownedCount = await db
+        .prepare(
+          `SELECT COUNT(*) AS n FROM alert_channels WHERE owner_token = ?1 AND id IN (${placeholders})`,
+        )
+        .bind(token, ...channelIds)
+        .first<{ n: number }>();
+      if ((ownedCount?.n ?? 0) !== channelIds.length) {
+        return badRequest("One or more alert channels do not exist");
+      }
+    }
+    await db
+      .prepare("DELETE FROM monitor_alert_channels WHERE monitor_id = ?1")
+      .bind(id)
+      .run();
+    for (const channelId of channelIds) {
+      await db
+        .prepare(
+          "INSERT INTO monitor_alert_channels (monitor_id, channel_id) VALUES (?1, ?2)",
+        )
+        .bind(id, channelId)
+        .run();
+    }
+  }
+
   const row = await owned(db, id, token);
   return ok({ monitor: row });
 }
