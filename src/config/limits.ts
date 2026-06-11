@@ -32,6 +32,10 @@ export interface Limits {
   expiryDays: number | null;
   /** How many recent checks to retain/return per monitor. */
   historyLimit: number;
+  /** Webhook Inspector: how many capture endpoints a token may own. */
+  maxWebhookEndpoints: number;
+  /** Webhook Inspector: stored requests retained per endpoint. */
+  webhookRequestsPerEndpoint: number;
 }
 
 // Allowed interval choices surfaced in the UI. Free clamps to >= its floor.
@@ -48,6 +52,12 @@ export function getLimits(
       minIntervalMinutes: intFromEnv(env, "PRO_MIN_INTERVAL_MINUTES", 1),
       expiryDays: null, // persistent
       historyLimit: intFromEnv(env, "CHECKS_HISTORY_LIMIT", 50),
+      maxWebhookEndpoints: intFromEnv(env, "PRO_MAX_WEBHOOK_ENDPOINTS", 25),
+      webhookRequestsPerEndpoint: intFromEnv(
+        env,
+        "PRO_WEBHOOK_REQUESTS_PER_ENDPOINT",
+        500,
+      ),
     };
   }
   return {
@@ -56,8 +66,18 @@ export function getLimits(
     minIntervalMinutes: intFromEnv(env, "FREE_MIN_INTERVAL_MINUTES", 15),
     expiryDays: intFromEnv(env, "FREE_EXPIRY_DAYS", 7),
     historyLimit: intFromEnv(env, "FREE_CHECKS_HISTORY_LIMIT", 20),
+    maxWebhookEndpoints: intFromEnv(env, "FREE_MAX_WEBHOOK_ENDPOINTS", 3),
+    webhookRequestsPerEndpoint: intFromEnv(
+      env,
+      "FREE_WEBHOOK_REQUESTS_PER_ENDPOINT",
+      50,
+    ),
   };
 }
+
+// Hard cap on stored webhook request bodies (bytes). Bigger bodies are
+// truncated at capture time; body_size records the true size.
+export const WEBHOOK_BODY_MAX_BYTES = 100 * 1024;
 
 // Cron tuning.
 export function getCronConcurrency(env?: Record<string, unknown>): number {

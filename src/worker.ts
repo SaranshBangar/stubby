@@ -1,4 +1,4 @@
-import { runMonitorCron } from "@/lib/cron";
+import { runCron } from "@/lib/cron";
 
 /**
  * ★ Cloudflare Worker entry point (custom).
@@ -31,16 +31,16 @@ export default {
   // Inherit fetch (and anything else) from the OpenNext-generated worker.
   ...(nextWorker as ExportedHandler<Env>),
 
-  // ── Cron tick (every minute) -> monitor loop. ──
-  // waitUntil keeps the Worker alive until the loop finishes. runMonitorCron
-  // is fully guarded (try/catch per monitor) so it always resolves.
+  // ── Cron tick (every minute) -> monitor loop + maintenance steps. ──
+  // waitUntil keeps the Worker alive until the tick finishes. runCron is
+  // fully guarded (try/catch per step and per monitor) so it always resolves.
   async scheduled(
     _event: ScheduledController,
     env: Env,
     ctx: ExecutionContext,
   ): Promise<void> {
     ctx.waitUntil(
-      runMonitorCron(env as never)
+      runCron(env as never)
         .then((r) =>
           console.log(
             `[cron] due=${r.due} checked=${r.checked} failed=${r.failed} alerts=${r.alertsSent}`,

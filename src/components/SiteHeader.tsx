@@ -16,6 +16,7 @@ function Wordmark() {
 const TABS = [
   { href: "/mock", label: "Mock Builder" },
   { href: "/monitor", label: "Uptime Monitors" },
+  { href: "/webhook", label: "Webhooks" },
 ];
 
 /**

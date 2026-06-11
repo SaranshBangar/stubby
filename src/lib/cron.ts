@@ -37,6 +37,91 @@ export interface CronResult {
   alertsSent: number;
 }
 
+/**
+ * ★ THE single cron tick — entry point called from src/worker.ts. Every
+ * scheduled job lives here (free tier caps cron triggers at 5/account, so
+ * we never add another trigger):
+ *   1. the monitor uptime loop (runMonitorCron),
+ *   2. webhook inspector retention (expired endpoints + overflow requests).
+ * Each step is independently try/caught — one failing subsystem must not
+ * starve the others.
+ */
+export async function runCron(env: CronEnv): Promise<CronResult> {
+  let result: CronResult = { due: 0, checked: 0, failed: 0, alertsSent: 0 };
+
+  try {
+    result = await runMonitorCron(env);
+  } catch (e) {
+    console.error("[cron] monitor loop failed", e);
+  }
+
+  try {
+    await pruneWebhookData(env);
+  } catch (e) {
+    console.error("[cron] webhook retention failed", e);
+  }
+
+  return result;
+}
+
+/**
+ * Webhook Inspector retention:
+ *   1. delete expired endpoints (requests cascade via FK),
+ *   2. for each remaining endpoint over its tier's stored-request limit,
+ *      drop the oldest rows beyond the limit.
+ */
+async function pruneWebhookData(env: CronEnv): Promise<void> {
+  const db = env.DB;
+  const now = Date.now();
+
+  await db
+    .prepare(
+      "DELETE FROM webhook_endpoints WHERE expires_at IS NOT NULL AND expires_at <= ?1",
+    )
+    .bind(now)
+    .run();
+
+  // Endpoints that exceed even the smallest (free) limit; resolve the
+  // owner's tier per endpoint (cached per token) and trim the overflow.
+  const freeLimit = getLimits("free", env).webhookRequestsPerEndpoint;
+  const { results } = await db
+    .prepare(
+      `SELECT e.id, e.owner_token, COUNT(r.id) AS n
+         FROM webhook_endpoints e
+         JOIN webhook_requests r ON r.endpoint_id = e.id
+        GROUP BY e.id
+       HAVING COUNT(r.id) > ?1`,
+    )
+    .bind(freeLimit)
+    .all<{ id: string; owner_token: string; n: number }>();
+
+  const tierLimit = new Map<string, number>();
+  for (const e of results ?? []) {
+    let limit = tierLimit.get(e.owner_token);
+    if (limit == null) {
+      const acct = await db
+        .prepare("SELECT status FROM accounts WHERE owner_token = ?1 LIMIT 1")
+        .bind(e.owner_token)
+        .first<{ status: string }>();
+      const tier = acct?.status === "active" ? "pro" : "free";
+      limit = getLimits(tier, env).webhookRequestsPerEndpoint;
+      tierLimit.set(e.owner_token, limit);
+    }
+    if (e.n <= limit) continue;
+    await db
+      .prepare(
+        `DELETE FROM webhook_requests
+          WHERE endpoint_id = ?1
+            AND id NOT IN (
+              SELECT id FROM webhook_requests WHERE endpoint_id = ?1
+              ORDER BY received_at DESC LIMIT ?2
+            )`,
+      )
+      .bind(e.id, limit)
+      .run();
+  }
+}
+
 export async function runMonitorCron(env: CronEnv): Promise<CronResult> {
   const db = env.DB;
   const now = Date.now();

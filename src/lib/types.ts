@@ -33,3 +33,25 @@ export interface CheckRow {
   response_time_ms: number | null;
   ok: number; // 0/1
 }
+
+export interface WebhookEndpointRow {
+  id: string; // also the public slug: /w/<id>
+  owner_token: string;
+  label: string;
+  created_at: number;
+  expires_at: number | null;
+}
+
+export interface WebhookRequestRow {
+  id: string;
+  endpoint_id: string;
+  received_at: number;
+  method: string;
+  path: string;
+  query_json: string;
+  headers_json: string;
+  body_raw: string;
+  body_size: number;
+  content_type: string | null;
+  ip_address: string | null;
+}
