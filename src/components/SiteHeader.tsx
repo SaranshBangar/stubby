@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { AuthMenu } from "@/components/AuthMenu";
 
 // Wordmark: orange "stub" + foreground "by", monospace — the design's logo.
 function Wordmark() {
@@ -61,6 +62,7 @@ export function SiteHeader({
               })}
             </div>
             <div className="flex items-center gap-2.5">
+              <AuthMenu />
               <span className="font-mono text-xs text-t3">free plan</span>
               <Button asChild size="sm">
                 <Link href="/#pricing">Go Pro</Link>
@@ -79,6 +81,7 @@ export function SiteHeader({
               <Button asChild variant="ghost" size="sm">
                 <Link href="/monitor">Monitors</Link>
               </Button>
+              <AuthMenu />
               <Button asChild size="sm">
                 <Link href="/mock">Open free tool</Link>
               </Button>
