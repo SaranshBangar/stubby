@@ -36,6 +36,12 @@ export interface Limits {
   maxWebhookEndpoints: number;
   /** Webhook Inspector: stored requests retained per endpoint. */
   webhookRequestsPerEndpoint: number;
+  /** Status pages: how many public pages a token may publish. */
+  maxStatusPages: number;
+  /** Status pages: monitors shown per page (Pro = all monitors it can own). */
+  maxMonitorsPerStatusPage: number;
+  /** Status pages: whether the "Powered by" badge can be hidden. */
+  canHidePoweredBy: boolean;
 }
 
 // Allowed interval choices surfaced in the UI. Free clamps to >= its floor.
@@ -58,6 +64,10 @@ export function getLimits(
         "PRO_WEBHOOK_REQUESTS_PER_ENDPOINT",
         500,
       ),
+      maxStatusPages: intFromEnv(env, "PRO_MAX_STATUS_PAGES", 10),
+      // = PRO_MAX_MONITORS: a Pro page can show every monitor the tier allows.
+      maxMonitorsPerStatusPage: intFromEnv(env, "PRO_MAX_MONITORS", 25),
+      canHidePoweredBy: true,
     };
   }
   return {
@@ -72,6 +82,9 @@ export function getLimits(
       "FREE_WEBHOOK_REQUESTS_PER_ENDPOINT",
       50,
     ),
+    maxStatusPages: intFromEnv(env, "FREE_MAX_STATUS_PAGES", 1),
+    maxMonitorsPerStatusPage: intFromEnv(env, "FREE_STATUS_PAGE_MONITORS", 5),
+    canHidePoweredBy: false,
   };
 }
 

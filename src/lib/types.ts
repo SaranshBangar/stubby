@@ -53,6 +53,23 @@ export interface CheckRow {
   ok: number; // 0/1
 }
 
+export interface StatusPageRow {
+  id: string;
+  owner_token: string;
+  slug: string;
+  title: string;
+  description: string;
+  created_at: number;
+  show_powered_by: number; // 0/1
+}
+
+export interface StatusPageMonitorRow {
+  page_id: string;
+  monitor_id: string;
+  display_label: string | null;
+  sort_order: number;
+}
+
 export interface WebhookEndpointRow {
   id: string; // also the public slug: /w/<id>
   owner_token: string;
