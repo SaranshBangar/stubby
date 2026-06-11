@@ -1,5 +1,13 @@
-import { sendEmail } from "@/lib/email";
-import { getCronConcurrency, getPingTimeoutMs, getLimits } from "@/config/limits";
+import { sendAlert, type AlertEvent } from "@/lib/alerts";
+import { checkSslCertificate } from "@/lib/ssl";
+import {
+  getCronConcurrency,
+  getPingTimeoutMs,
+  getLimits,
+  SSL_EVENTS_HISTORY_LIMIT,
+  KEYWORD_BODY_MAX_BYTES,
+  ALERT_DELIVERY_LOG_LIMIT,
+} from "@/config/limits";
 import type { MonitorRow } from "@/lib/types";
 
 /**
@@ -35,6 +43,125 @@ export interface CronResult {
   checked: number;
   failed: number;
   alertsSent: number;
+}
+
+/**
+ * ★ THE single cron tick — entry point called from src/worker.ts. Every
+ * scheduled job lives here (free tier caps cron triggers at 5/account, so
+ * we never add another trigger):
+ *   1. the monitor uptime loop (runMonitorCron),
+ *   2. webhook inspector retention (expired endpoints + overflow requests),
+ *   3. alert delivery log pruning.
+ * Each step is independently try/caught — one failing subsystem must not
+ * starve the others.
+ */
+export async function runCron(env: CronEnv): Promise<CronResult> {
+  let result: CronResult = { due: 0, checked: 0, failed: 0, alertsSent: 0 };
+
+  try {
+    result = await runMonitorCron(env);
+  } catch (e) {
+    console.error("[cron] monitor loop failed", e);
+  }
+
+  try {
+    await pruneWebhookData(env);
+  } catch (e) {
+    console.error("[cron] webhook retention failed", e);
+  }
+
+  try {
+    await pruneAlertDeliveryLog(env);
+  } catch (e) {
+    console.error("[cron] alert log pruning failed", e);
+  }
+
+  return result;
+}
+
+// Keep alert_delivery_log bounded: newest N rows per channel.
+async function pruneAlertDeliveryLog(env: CronEnv): Promise<void> {
+  const db = env.DB;
+  const { results } = await db
+    .prepare(
+      `SELECT channel_id FROM alert_delivery_log
+        GROUP BY channel_id
+       HAVING COUNT(*) > ?1`,
+    )
+    .bind(ALERT_DELIVERY_LOG_LIMIT)
+    .all<{ channel_id: string }>();
+
+  for (const { channel_id } of results ?? []) {
+    await db
+      .prepare(
+        `DELETE FROM alert_delivery_log
+          WHERE channel_id = ?1
+            AND id NOT IN (
+              SELECT id FROM alert_delivery_log WHERE channel_id = ?1
+              ORDER BY attempted_at DESC LIMIT ?2
+            )`,
+      )
+      .bind(channel_id, ALERT_DELIVERY_LOG_LIMIT)
+      .run();
+  }
+}
+
+/**
+ * Webhook Inspector retention:
+ *   1. delete expired endpoints (requests cascade via FK),
+ *   2. for each remaining endpoint over its tier's stored-request limit,
+ *      drop the oldest rows beyond the limit.
+ */
+async function pruneWebhookData(env: CronEnv): Promise<void> {
+  const db = env.DB;
+  const now = Date.now();
+
+  await db
+    .prepare(
+      "DELETE FROM webhook_endpoints WHERE expires_at IS NOT NULL AND expires_at <= ?1",
+    )
+    .bind(now)
+    .run();
+
+  // Endpoints that exceed even the smallest (free) limit; resolve the
+  // owner's tier per endpoint (cached per token) and trim the overflow.
+  const freeLimit = getLimits("free", env).webhookRequestsPerEndpoint;
+  const { results } = await db
+    .prepare(
+      `SELECT e.id, e.owner_token, COUNT(r.id) AS n
+         FROM webhook_endpoints e
+         JOIN webhook_requests r ON r.endpoint_id = e.id
+        GROUP BY e.id
+       HAVING COUNT(r.id) > ?1`,
+    )
+    .bind(freeLimit)
+    .all<{ id: string; owner_token: string; n: number }>();
+
+  const tierLimit = new Map<string, number>();
+  for (const e of results ?? []) {
+    let limit = tierLimit.get(e.owner_token);
+    if (limit == null) {
+      const acct = await db
+        .prepare("SELECT status FROM accounts WHERE owner_token = ?1 LIMIT 1")
+        .bind(e.owner_token)
+        .first<{ status: string }>();
+      const tier = acct?.status === "active" ? "pro" : "free";
+      limit = getLimits(tier, env).webhookRequestsPerEndpoint;
+      tierLimit.set(e.owner_token, limit);
+    }
+    if (e.n <= limit) continue;
+    await db
+      .prepare(
+        `DELETE FROM webhook_requests
+          WHERE endpoint_id = ?1
+            AND id NOT IN (
+              SELECT id FROM webhook_requests WHERE endpoint_id = ?1
+              ORDER BY received_at DESC LIMIT ?2
+            )`,
+      )
+      .bind(e.id, limit)
+      .run();
+  }
 }
 
 export async function runMonitorCron(env: CronEnv): Promise<CronResult> {
@@ -106,6 +233,7 @@ async function processMonitor(
   let statusCode: number | null = null;
   let responseTimeMs: number | null = null;
   let ok = false;
+  let failureReason: string | null = null;
 
   // ── Ping with timeout. Any throw => treated as down (ok=false). ──
   try {
@@ -123,6 +251,30 @@ async function processMonitor(
       statusCode = res.status;
       // 2xx (and 3xx redirects, since redirect:manual) counts as up.
       ok = res.status >= 200 && res.status < 400;
+
+      // ── Keyword assertion (2xx only). A failed assertion flips the check
+      // to DOWN even though HTTP succeeded; failure_reason says why. A
+      // body-read error is logged but never crashes the check loop. ──
+      if (
+        ok &&
+        res.status < 300 &&
+        m.keyword_check_enabled === 1 &&
+        m.keyword_check_string
+      ) {
+        try {
+          const body = await readBodyCapped(res, KEYWORD_BODY_MAX_BYTES);
+          const found = body.includes(m.keyword_check_string);
+          if (m.keyword_check_mode === "must_not_contain" && found) {
+            ok = false;
+            failureReason = `Forbidden keyword found: ${m.keyword_check_string}`;
+          } else if (m.keyword_check_mode !== "must_not_contain" && !found) {
+            ok = false;
+            failureReason = `Keyword not found: ${m.keyword_check_string}`;
+          }
+        } catch (e) {
+          console.error(`[cron] keyword body read failed for ${m.id}`, e);
+        }
+      }
     } finally {
       clearTimeout(timer);
     }
@@ -140,17 +292,33 @@ async function processMonitor(
   try {
     await db
       .prepare(
-        `INSERT INTO checks (id, monitor_id, checked_at, status_code, response_time_ms, ok)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+        `INSERT INTO checks (id, monitor_id, checked_at, status_code, response_time_ms, ok, failure_reason)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
       )
-      .bind(crypto.randomUUID(), m.id, now, statusCode, responseTimeMs, nowUp ? 1 : 0)
+      .bind(
+        crypto.randomUUID(),
+        m.id,
+        now,
+        statusCode,
+        responseTimeMs,
+        nowUp ? 1 : 0,
+        failureReason,
+      )
       .run();
 
     await db
       .prepare(
-        `UPDATE monitors SET last_checked_at=?1, last_status=?2, is_up=?3 WHERE id=?4`,
+        `UPDATE monitors
+            SET last_checked_at=?1, last_status=?2, is_up=?3, keyword_check_failed_at=?4
+          WHERE id=?5`,
       )
-      .bind(now, statusCode, nowUp ? 1 : 0, m.id)
+      .bind(
+        now,
+        statusCode,
+        nowUp ? 1 : 0,
+        failureReason != null ? now : null,
+        m.id,
+      )
       .run();
 
     // Prune old checks beyond the (free-tier) history limit. We use the free
@@ -171,34 +339,243 @@ async function processMonitor(
     // Swallow — reporting this monitor as processed; next tick retries.
   }
 
-  // ── Alert on transition only. ──
+  // ── Alert on transition only (email + linked channels via sendAlert). ──
   let alertSent = false;
   if (transition) {
-    const sent = await sendTransitionEmail(env, m, nowUp, statusCode);
-    alertSent = sent;
+    const event: AlertEvent = nowUp
+      ? "up"
+      : failureReason != null
+        ? "keyword_failure"
+        : "down";
+    const statusText =
+      statusCode != null ? `HTTP ${statusCode}` : "no response (timeout)";
+    alertSent = await sendAlert(db, env, m, {
+      event,
+      details: failureReason ?? statusText,
+      ...transitionEmail(env, m, nowUp, failureReason ?? statusText),
+    });
+  }
+
+  // ── SSL inspection (HTTPS only). Fully independent of the uptime result:
+  // a TLS problem must never mark the monitor down, and an inspection crash
+  // must never lose the check we just recorded. ──
+  if (m.target_url.startsWith("https://")) {
+    try {
+      if (await processSslCheck(db, env, m, now, timeoutMs)) alertSent = true;
+    } catch (e) {
+      console.error(`[cron] ssl check failed for ${m.id}`, e);
+    }
   }
 
   return { ok: nowUp, alertSent };
 }
 
-async function sendTransitionEmail(
+/**
+ * Inspect the monitor's TLS certificate, persist the result, and send the
+ * tiered expiry/invalid alerts. Returns true if any alert email went out.
+ *
+ * Alert ladder: one email per threshold (30/14/7 days). If a cert is first
+ * seen already inside a lower threshold we send only the most urgent email
+ * and mark the higher thresholds as sent too — never three emails at once.
+ * All flags reset once days_remaining climbs back above 30 (cert renewed).
+ */
+async function processSslCheck(
+  db: D1Database,
+  env: CronEnv,
+  m: MonitorRow,
+  now: number,
+  timeoutMs: number,
+): Promise<boolean> {
+  const url = new URL(m.target_url);
+  const port = url.port ? parseInt(url.port, 10) : 443;
+  const result = await checkSslCertificate(url.hostname, port, timeoutMs);
+
+  // Runtime can't introspect TLS (e.g. local workerd without node:tls) —
+  // skip silently rather than recording a misleading "invalid" event.
+  if (!result.supported) return false;
+
+  const daysRemaining =
+    result.validTo != null
+      ? Math.floor((result.validTo - now) / 86_400_000)
+      : null;
+
+  await db
+    .prepare(
+      `UPDATE monitors
+          SET ssl_expiry_date=?1, ssl_last_checked_at=?2, ssl_issuer=?3, ssl_days_remaining=?4
+        WHERE id=?5`,
+    )
+    .bind(result.validTo, now, result.issuer, daysRemaining, m.id)
+    .run();
+
+  await db
+    .prepare(
+      `INSERT INTO ssl_events (id, monitor_id, checked_at, days_remaining, issuer, valid, error)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
+    )
+    .bind(
+      crypto.randomUUID(),
+      m.id,
+      now,
+      daysRemaining,
+      result.issuer,
+      result.valid ? 1 : 0,
+      result.error,
+    )
+    .run();
+
+  await db
+    .prepare(
+      `DELETE FROM ssl_events
+        WHERE monitor_id = ?1
+          AND id NOT IN (
+            SELECT id FROM ssl_events WHERE monitor_id = ?1
+            ORDER BY checked_at DESC LIMIT ?2
+          )`,
+    )
+    .bind(m.id, SSL_EVENTS_HISTORY_LIMIT)
+    .run();
+
+  const domain = url.hostname;
+  const appUrl = env.APP_URL ?? "";
+  let sent = false;
+
+  if (!result.valid) {
+    if (m.ssl_invalid_alerted !== 1) {
+      const expired = daysRemaining != null && daysRemaining < 0;
+      const email = expired
+        ? sslExpiredEmail(domain, appUrl)
+        : sslInvalidEmail(domain, result.error ?? "Unknown TLS error", appUrl);
+      sent = await sendAlert(db, env, m, {
+        event: expired ? "ssl_expired" : "ssl_invalid",
+        details: expired
+          ? `SSL certificate for ${domain} has expired`
+          : `SSL certificate error on ${domain}: ${result.error ?? "unknown"}`,
+        emailSubject: email.subject,
+        emailHtml: email.html,
+      });
+      await db
+        .prepare("UPDATE monitors SET ssl_invalid_alerted=1 WHERE id=?1")
+        .bind(m.id)
+        .run();
+    }
+    return sent;
+  }
+
+  // Cert is valid again — clear the invalid flag so a future breakage alerts.
+  if (m.ssl_invalid_alerted === 1) {
+    await db
+      .prepare("UPDATE monitors SET ssl_invalid_alerted=0 WHERE id=?1")
+      .bind(m.id)
+      .run();
+  }
+
+  if (daysRemaining == null) return sent;
+
+  if (daysRemaining > 30) {
+    // Renewed — re-arm all expiry thresholds.
+    if (m.ssl_alert_sent_30 === 1 || m.ssl_alert_sent_14 === 1 || m.ssl_alert_sent_7 === 1) {
+      await db
+        .prepare(
+          "UPDATE monitors SET ssl_alert_sent_30=0, ssl_alert_sent_14=0, ssl_alert_sent_7=0 WHERE id=?1",
+        )
+        .bind(m.id)
+        .run();
+    }
+    return sent;
+  }
+
+  let flagsSql: string | null = null;
+  if (daysRemaining <= 7 && m.ssl_alert_sent_7 !== 1) {
+    flagsSql = "ssl_alert_sent_7=1, ssl_alert_sent_14=1, ssl_alert_sent_30=1";
+  } else if (daysRemaining <= 14 && m.ssl_alert_sent_14 !== 1) {
+    flagsSql = "ssl_alert_sent_14=1, ssl_alert_sent_30=1";
+  } else if (daysRemaining <= 30 && m.ssl_alert_sent_30 !== 1) {
+    flagsSql = "ssl_alert_sent_30=1";
+  }
+  if (flagsSql) {
+    const email = sslExpiryWarningEmail(domain, daysRemaining, appUrl);
+    const ok = await sendAlert(db, env, m, {
+      event: "ssl_expiry",
+      details: `SSL certificate for ${domain} expires in ${daysRemaining} day${daysRemaining === 1 ? "" : "s"}`,
+      emailSubject: email.subject,
+      emailHtml: email.html,
+    });
+    sent = ok || sent;
+    await db
+      .prepare(`UPDATE monitors SET ${flagsSql} WHERE id=?1`)
+      .bind(m.id)
+      .run();
+  }
+
+  return sent;
+}
+
+// ── SSL alert email templates ──────────────────────────────────────────
+
+function sslExpiryWarningEmail(domain: string, days: number, appUrl: string) {
+  return {
+    subject: `SSL cert for ${domain} expires in ${days} day${days === 1 ? "" : "s"}`,
+    html: `<p>The SSL certificate for <strong>${domain}</strong> expires in <strong>${days} day${days === 1 ? "" : "s"}</strong>.</p>
+       <p>Once it expires, browsers will show a security warning and refuse to load the site. Renew the certificate before then (most providers, like Let's Encrypt, renew automatically — this may mean the automation is broken).</p>
+       <p style="color:#888">Monitored by Stubby. <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
+  };
+}
+
+function sslExpiredEmail(domain: string, appUrl: string) {
+  return {
+    subject: `SSL cert for ${domain} has expired`,
+    html: `<p>The SSL certificate for <strong>${domain}</strong> <strong>has expired</strong>.</p>
+       <p>Visitors are now seeing browser security warnings and most clients will refuse to connect. Renew the certificate as soon as possible.</p>
+       <p style="color:#888">You'll only get this email once per incident. — Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
+  };
+}
+
+function sslInvalidEmail(domain: string, error: string, appUrl: string) {
+  return {
+    subject: `SSL certificate error on ${domain}`,
+    html: `<p>The SSL certificate for <strong>${domain}</strong> failed validation: <code>${error}</code></p>
+       <p>This usually means a broken certificate chain, a self-signed cert, or a hostname mismatch. Clients that validate certificates (browsers, most HTTP libraries) will refuse to connect.</p>
+       <p style="color:#888">You'll only get this email once per incident. — Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
+  };
+}
+
+// Stream the response body up to maxBytes, then cancel — keyword checks
+// must not buffer arbitrarily large pages in Worker memory.
+async function readBodyCapped(res: Response, maxBytes: number): Promise<string> {
+  if (!res.body) return "";
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let out = "";
+  let bytes = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    out += decoder.decode(value, { stream: true });
+    if (bytes >= maxBytes) {
+      await reader.cancel().catch(() => undefined);
+      break;
+    }
+  }
+  return out;
+}
+
+function transitionEmail(
   env: CronEnv,
   m: MonitorRow,
   nowUp: boolean,
-  statusCode: number | null,
-): Promise<boolean> {
+  statusText: string,
+): { emailSubject: string; emailHtml: string } {
   const appUrl = env.APP_URL ?? "";
-  const statusText = statusCode != null ? `HTTP ${statusCode}` : "no response (timeout)";
-  const subject = nowUp
+  const emailSubject = nowUp
     ? `✅ Recovered: ${m.target_url}`
     : `🔴 Down: ${m.target_url}`;
-  const html = nowUp
+  const emailHtml = nowUp
     ? `<p>Good news — <a href="${m.target_url}">${m.target_url}</a> is back up (${statusText}).</p>
        <p style="color:#888">Monitored by Stubby. ${appUrl}/monitor</p>`
     : `<p><strong><a href="${m.target_url}">${m.target_url}</a> is down.</strong></p>
        <p>Last check returned ${statusText}.</p>
        <p style="color:#888">You'll get another email when it recovers. — Stubby ${appUrl}/monitor</p>`;
-
-  const res = await sendEmail(env, { to: m.alert_email, subject, html });
-  return res.ok;
+  return { emailSubject, emailHtml };
 }

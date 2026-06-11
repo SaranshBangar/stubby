@@ -104,6 +104,35 @@ export function MockForm({ onCreated }: { onCreated: (m: MockRow) => void }) {
           spellCheck={false}
           className="font-mono text-xs text-code"
         />
+        <details className="text-xs text-muted-foreground">
+          <summary className="cursor-pointer select-none hover:text-t1">
+            Variables reference — tokens resolved fresh on every request
+          </summary>
+          <dl className="mt-2 grid gap-x-4 gap-y-0.5 font-mono sm:grid-cols-2">
+            {[
+              ["{{uuid}}", "new UUID v4"],
+              ["{{timestamp}}", "current ISO 8601 datetime"],
+              ["{{timestamp_unix}}", "current Unix epoch (s)"],
+              ["{{random_int}}", "random integer 0–9999"],
+              ["{{random_int:N:M}}", "random integer N–M"],
+              ["{{random_float}}", "random float 0.00–1.00"],
+              ["{{random_bool}}", "true or false"],
+              ["{{random_name}}", "a random full name"],
+              ["{{random_email}}", "a random email"],
+              ["{{random_url}}", "a plausible https URL"],
+              ["{{lorem:N}}", "N words of lorem ipsum"],
+              ["{{request_method}}", "incoming HTTP method"],
+              ["{{request_ip}}", "requester's IP"],
+              ["{{request_header:X}}", "value of header X"],
+              ["{{request_query:X}}", "value of query param X"],
+            ].map(([token, desc]) => (
+              <div key={token} className="flex gap-2">
+                <code className="text-code">{token}</code>
+                <span>{desc}</span>
+              </div>
+            ))}
+          </dl>
+        </details>
       </div>
 
       <div className="space-y-2">

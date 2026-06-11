@@ -32,6 +32,20 @@ export interface Limits {
   expiryDays: number | null;
   /** How many recent checks to retain/return per monitor. */
   historyLimit: number;
+  /** Webhook Inspector: how many capture endpoints a token may own. */
+  maxWebhookEndpoints: number;
+  /** Webhook Inspector: stored requests retained per endpoint. */
+  webhookRequestsPerEndpoint: number;
+  /** Status pages: how many public pages a token may publish. */
+  maxStatusPages: number;
+  /** Status pages: monitors shown per page (Pro = all monitors it can own). */
+  maxMonitorsPerStatusPage: number;
+  /** Status pages: whether the "Powered by" badge can be hidden. */
+  canHidePoweredBy: boolean;
+  /** Alert channels (Slack/Discord/webhook) a token may save. */
+  maxAlertChannels: number;
+  /** Conditional response rules allowed per mock. */
+  maxRulesPerMock: number;
 }
 
 // Allowed interval choices surfaced in the UI. Free clamps to >= its floor.
@@ -48,6 +62,18 @@ export function getLimits(
       minIntervalMinutes: intFromEnv(env, "PRO_MIN_INTERVAL_MINUTES", 1),
       expiryDays: null, // persistent
       historyLimit: intFromEnv(env, "CHECKS_HISTORY_LIMIT", 50),
+      maxWebhookEndpoints: intFromEnv(env, "PRO_MAX_WEBHOOK_ENDPOINTS", 25),
+      webhookRequestsPerEndpoint: intFromEnv(
+        env,
+        "PRO_WEBHOOK_REQUESTS_PER_ENDPOINT",
+        500,
+      ),
+      maxStatusPages: intFromEnv(env, "PRO_MAX_STATUS_PAGES", 10),
+      // = PRO_MAX_MONITORS: a Pro page can show every monitor the tier allows.
+      maxMonitorsPerStatusPage: intFromEnv(env, "PRO_MAX_MONITORS", 25),
+      canHidePoweredBy: true,
+      maxAlertChannels: intFromEnv(env, "PRO_MAX_ALERT_CHANNELS", 25),
+      maxRulesPerMock: intFromEnv(env, "PRO_MAX_RULES_PER_MOCK", 5),
     };
   }
   return {
@@ -56,8 +82,32 @@ export function getLimits(
     minIntervalMinutes: intFromEnv(env, "FREE_MIN_INTERVAL_MINUTES", 15),
     expiryDays: intFromEnv(env, "FREE_EXPIRY_DAYS", 7),
     historyLimit: intFromEnv(env, "FREE_CHECKS_HISTORY_LIMIT", 20),
+    maxWebhookEndpoints: intFromEnv(env, "FREE_MAX_WEBHOOK_ENDPOINTS", 3),
+    webhookRequestsPerEndpoint: intFromEnv(
+      env,
+      "FREE_WEBHOOK_REQUESTS_PER_ENDPOINT",
+      50,
+    ),
+    maxStatusPages: intFromEnv(env, "FREE_MAX_STATUS_PAGES", 1),
+    maxMonitorsPerStatusPage: intFromEnv(env, "FREE_STATUS_PAGE_MONITORS", 5),
+    canHidePoweredBy: false,
+    maxAlertChannels: intFromEnv(env, "FREE_MAX_ALERT_CHANNELS", 3),
+    maxRulesPerMock: intFromEnv(env, "FREE_MAX_RULES_PER_MOCK", 1),
   };
 }
+
+// Hard cap on stored webhook request bodies (bytes). Bigger bodies are
+// truncated at capture time; body_size records the true size.
+export const WEBHOOK_BODY_MAX_BYTES = 100 * 1024;
+
+// How many ssl_events rows to retain per monitor (pruned in the cron).
+export const SSL_EVENTS_HISTORY_LIMIT = 30;
+
+// Keyword checks: read at most this much of the response body (memory cap).
+export const KEYWORD_BODY_MAX_BYTES = 500 * 1024;
+
+// alert_delivery_log rows retained per channel (pruned in the cron).
+export const ALERT_DELIVERY_LOG_LIMIT = 500;
 
 // Cron tuning.
 export function getCronConcurrency(env?: Record<string, unknown>): number {

@@ -6,6 +6,7 @@ import type { MockRow } from "@/lib/types";
 import { SiteHeader } from "@/components/SiteHeader";
 import { MockForm } from "@/components/MockForm";
 import { MockList } from "@/components/MockList";
+import { ImportOpenApiModal } from "@/components/ImportOpenApiModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function MockPage() {
@@ -44,9 +45,14 @@ export default function MockPage() {
         </Card>
 
         <section className="mt-10">
-          <h2 className="mb-3 font-mono text-[11px] uppercase tracking-wider text-t3">
-            Your mocks
-          </h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-mono text-[11px] uppercase tracking-wider text-t3">
+              Your mocks
+            </h2>
+            <ImportOpenApiModal
+              onImported={(created) => setMocks((prev) => [...created, ...prev])}
+            />
+          </div>
           {loading ? (
             <p className="text-sm text-t2">Loading…</p>
           ) : (

@@ -1,9 +1,11 @@
 "use client";
+import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 import type { MockRow } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/CopyButton";
+import { MockRulesSection } from "@/components/MockRulesSection";
 
 function mockUrl(slug: string): string {
   const base =
@@ -36,46 +38,67 @@ export function MockList({
 
   return (
     <ul className="space-y-3">
-      {mocks.map((m) => {
-        const url = mockUrl(m.slug);
-        const curl = `curl -i ${url}`;
-        return (
-          <li key={m.id} className="rounded-lg border border-border p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="font-mono">
-                {m.status_code}
-              </Badge>
-              <code className="flex-1 truncate font-mono text-sm text-primary">
-                /m/{m.slug}
-              </code>
-              <span className="text-xs text-muted-foreground">
-                {m.delay_ms > 0 ? `${m.delay_ms}ms · ` : ""}
-                {expiryLabel(m.expires_at)}
-              </span>
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <code className="flex-1 overflow-x-auto rounded bg-muted px-2 py-1 font-mono text-xs">
-                {url}
-              </code>
-              <CopyButton value={url} label="URL" />
-              <CopyButton value={curl} label="curl" />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={async () => {
-                  if (!confirm("Delete this mock?")) return;
-                  await apiFetch(`/api/mocks/${m.id}`, { method: "DELETE" });
-                  onDeleted(m.id);
-                }}
-              >
-                Delete
-              </Button>
-            </div>
-          </li>
-        );
-      })}
+      {mocks.map((m) => (
+        <MockItem key={m.id} m={m} onDeleted={onDeleted} />
+      ))}
     </ul>
+  );
+}
+
+function MockItem({
+  m,
+  onDeleted,
+}: {
+  m: MockRow;
+  onDeleted: (id: string) => void;
+}) {
+  const [showRules, setShowRules] = useState(false);
+  const url = mockUrl(m.slug);
+  const curl = `curl -i ${url}`;
+
+  return (
+    <li className="rounded-lg border border-border p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" className="font-mono">
+          {m.status_code}
+        </Badge>
+        <code className="flex-1 truncate font-mono text-sm text-primary">
+          /m/{m.slug}
+        </code>
+        <span className="text-xs text-muted-foreground">
+          {m.delay_ms > 0 ? `${m.delay_ms}ms · ` : ""}
+          {expiryLabel(m.expires_at)}
+        </span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <code className="flex-1 overflow-x-auto rounded bg-muted px-2 py-1 font-mono text-xs">
+          {url}
+        </code>
+        <CopyButton value={url} label="URL" />
+        <CopyButton value={curl} label="curl" />
+        <Button
+          variant={showRules ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => setShowRules((p) => !p)}
+        >
+          Rules
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:text-destructive"
+          onClick={async () => {
+            if (!confirm("Delete this mock?")) return;
+            await apiFetch(`/api/mocks/${m.id}`, { method: "DELETE" });
+            onDeleted(m.id);
+          }}
+        >
+          Delete
+        </Button>
+      </div>
+
+      {showRules && <MockRulesSection mockId={m.id} />}
+    </li>
   );
 }
