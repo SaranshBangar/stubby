@@ -95,6 +95,9 @@ export const WEBHOOK_BODY_MAX_BYTES = 100 * 1024;
 // How many ssl_events rows to retain per monitor (pruned in the cron).
 export const SSL_EVENTS_HISTORY_LIMIT = 30;
 
+// Keyword checks: read at most this much of the response body (memory cap).
+export const KEYWORD_BODY_MAX_BYTES = 500 * 1024;
+
 // Cron tuning.
 export function getCronConcurrency(env?: Record<string, unknown>): number {
   return intFromEnv(env, "CRON_CONCURRENCY", 10);

@@ -24,6 +24,11 @@ export function MonitorForm({
   const [url, setUrl] = useState("");
   const [interval, setInterval] = useState("15");
   const [email, setEmail] = useState("");
+  const [keywordEnabled, setKeywordEnabled] = useState(false);
+  const [keyword, setKeyword] = useState("");
+  const [keywordMode, setKeywordMode] = useState<"must_contain" | "must_not_contain">(
+    "must_contain",
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,11 +45,16 @@ export function MonitorForm({
             target_url: url.trim(),
             interval_minutes: Number(interval),
             alert_email: email.trim(),
+            keyword_check_enabled: keywordEnabled,
+            keyword_check_string: keywordEnabled ? keyword : undefined,
+            keyword_check_mode: keywordEnabled ? keywordMode : undefined,
           }),
         },
       );
       onCreated(monitor);
       setUrl("");
+      setKeywordEnabled(false);
+      setKeyword("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create monitor");
     } finally {
@@ -98,6 +108,55 @@ export function MonitorForm({
             className="font-mono"
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            className="accent-[var(--accent)]"
+            checked={keywordEnabled}
+            onChange={(e) => setKeywordEnabled(e.target.checked)}
+          />
+          Keyword check
+          <span className="text-xs text-muted-foreground">
+            (fail the check based on the response body, even on HTTP 200)
+          </span>
+        </label>
+
+        {keywordEnabled && (
+          <div className="space-y-2 rounded-md border border-border p-3">
+            <Input
+              placeholder='e.g. "status":"ok"'
+              required
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              className="font-mono text-xs"
+            />
+            <div className="flex flex-wrap gap-4 text-sm">
+              <label className="flex cursor-pointer items-center gap-1.5">
+                <input
+                  type="radio"
+                  name="keyword-mode"
+                  className="accent-[var(--accent)]"
+                  checked={keywordMode === "must_contain"}
+                  onChange={() => setKeywordMode("must_contain")}
+                />
+                Page must contain this
+              </label>
+              <label className="flex cursor-pointer items-center gap-1.5">
+                <input
+                  type="radio"
+                  name="keyword-mode"
+                  className="accent-[var(--accent)]"
+                  checked={keywordMode === "must_not_contain"}
+                  onChange={() => setKeywordMode("must_not_contain")}
+                />
+                Page must NOT contain this
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && (

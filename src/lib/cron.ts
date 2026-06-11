@@ -5,6 +5,7 @@ import {
   getPingTimeoutMs,
   getLimits,
   SSL_EVENTS_HISTORY_LIMIT,
+  KEYWORD_BODY_MAX_BYTES,
 } from "@/config/limits";
 import type { MonitorRow } from "@/lib/types";
 
@@ -197,6 +198,7 @@ async function processMonitor(
   let statusCode: number | null = null;
   let responseTimeMs: number | null = null;
   let ok = false;
+  let failureReason: string | null = null;
 
   // ── Ping with timeout. Any throw => treated as down (ok=false). ──
   try {
@@ -214,6 +216,30 @@ async function processMonitor(
       statusCode = res.status;
       // 2xx (and 3xx redirects, since redirect:manual) counts as up.
       ok = res.status >= 200 && res.status < 400;
+
+      // ── Keyword assertion (2xx only). A failed assertion flips the check
+      // to DOWN even though HTTP succeeded; failure_reason says why. A
+      // body-read error is logged but never crashes the check loop. ──
+      if (
+        ok &&
+        res.status < 300 &&
+        m.keyword_check_enabled === 1 &&
+        m.keyword_check_string
+      ) {
+        try {
+          const body = await readBodyCapped(res, KEYWORD_BODY_MAX_BYTES);
+          const found = body.includes(m.keyword_check_string);
+          if (m.keyword_check_mode === "must_not_contain" && found) {
+            ok = false;
+            failureReason = `Forbidden keyword found: ${m.keyword_check_string}`;
+          } else if (m.keyword_check_mode !== "must_not_contain" && !found) {
+            ok = false;
+            failureReason = `Keyword not found: ${m.keyword_check_string}`;
+          }
+        } catch (e) {
+          console.error(`[cron] keyword body read failed for ${m.id}`, e);
+        }
+      }
     } finally {
       clearTimeout(timer);
     }
@@ -231,17 +257,33 @@ async function processMonitor(
   try {
     await db
       .prepare(
-        `INSERT INTO checks (id, monitor_id, checked_at, status_code, response_time_ms, ok)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+        `INSERT INTO checks (id, monitor_id, checked_at, status_code, response_time_ms, ok, failure_reason)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
       )
-      .bind(crypto.randomUUID(), m.id, now, statusCode, responseTimeMs, nowUp ? 1 : 0)
+      .bind(
+        crypto.randomUUID(),
+        m.id,
+        now,
+        statusCode,
+        responseTimeMs,
+        nowUp ? 1 : 0,
+        failureReason,
+      )
       .run();
 
     await db
       .prepare(
-        `UPDATE monitors SET last_checked_at=?1, last_status=?2, is_up=?3 WHERE id=?4`,
+        `UPDATE monitors
+            SET last_checked_at=?1, last_status=?2, is_up=?3, keyword_check_failed_at=?4
+          WHERE id=?5`,
       )
-      .bind(now, statusCode, nowUp ? 1 : 0, m.id)
+      .bind(
+        now,
+        statusCode,
+        nowUp ? 1 : 0,
+        failureReason != null ? now : null,
+        m.id,
+      )
       .run();
 
     // Prune old checks beyond the (free-tier) history limit. We use the free
@@ -442,6 +484,27 @@ function sslInvalidEmail(domain: string, error: string, appUrl: string) {
        <p>This usually means a broken certificate chain, a self-signed cert, or a hostname mismatch. Clients that validate certificates (browsers, most HTTP libraries) will refuse to connect.</p>
        <p style="color:#888">You'll only get this email once per incident. — Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
   };
+}
+
+// Stream the response body up to maxBytes, then cancel — keyword checks
+// must not buffer arbitrarily large pages in Worker memory.
+async function readBodyCapped(res: Response, maxBytes: number): Promise<string> {
+  if (!res.body) return "";
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let out = "";
+  let bytes = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    out += decoder.decode(value, { stream: true });
+    if (bytes >= maxBytes) {
+      await reader.cancel().catch(() => undefined);
+      break;
+    }
+  }
+  return out;
 }
 
 async function sendTransitionEmail(

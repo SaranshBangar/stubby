@@ -43,6 +43,7 @@ export function Sparkline({ checks }: { checks: CheckRow[] }) {
               {new Date(c.checked_at).toLocaleString()} —{" "}
               {c.status_code ?? "timeout"}
               {c.response_time_ms != null ? ` · ${c.response_time_ms}ms` : ""}
+              {c.failure_reason ? ` · ${c.failure_reason}` : ""}
             </title>
           </rect>
         );

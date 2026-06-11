@@ -51,6 +51,21 @@ export async function POST(req: Request) {
     return badRequest("alert_email must be a valid email");
   }
 
+  // Optional keyword assertion on the response body.
+  const keywordEnabled = body.keyword_check_enabled === true;
+  let keywordString: string | null = null;
+  let keywordMode: string | null = null;
+  if (keywordEnabled) {
+    keywordString = String(body.keyword_check_string ?? "").slice(0, 200);
+    if (!keywordString) {
+      return badRequest("keyword_check_string is required when the keyword check is enabled");
+    }
+    keywordMode = String(body.keyword_check_mode ?? "must_contain");
+    if (keywordMode !== "must_contain" && keywordMode !== "must_not_contain") {
+      return badRequest("keyword_check_mode must be must_contain or must_not_contain");
+    }
+  }
+
   const db = getDB();
   const env = getEnv();
   const { limits } = await getLimitsForToken(db, token, env);
@@ -76,10 +91,22 @@ export async function POST(req: Request) {
   await db
     .prepare(
       `INSERT INTO monitors
-        (id, owner_token, target_url, interval_minutes, last_checked_at, last_status, is_up, alert_email, created_at, expires_at)
-       VALUES (?1, ?2, ?3, ?4, NULL, NULL, 1, ?5, ?6, ?7)`,
+        (id, owner_token, target_url, interval_minutes, last_checked_at, last_status, is_up, alert_email, created_at, expires_at,
+         keyword_check_enabled, keyword_check_string, keyword_check_mode)
+       VALUES (?1, ?2, ?3, ?4, NULL, NULL, 1, ?5, ?6, ?7, ?8, ?9, ?10)`,
     )
-    .bind(id, token, targetUrl, effectiveInterval, alertEmail, now, expiresAt)
+    .bind(
+      id,
+      token,
+      targetUrl,
+      effectiveInterval,
+      alertEmail,
+      now,
+      expiresAt,
+      keywordEnabled ? 1 : 0,
+      keywordString,
+      keywordMode,
+    )
     .run();
 
   const row = await db

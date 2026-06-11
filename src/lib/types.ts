@@ -32,7 +32,14 @@ export interface MonitorRow {
   ssl_alert_sent_14: number; // 0/1
   ssl_alert_sent_7: number; // 0/1
   ssl_invalid_alerted: number; // 0/1
+  // Keyword / content check (assertion on the response body).
+  keyword_check_enabled: number; // 0/1
+  keyword_check_string: string | null;
+  keyword_check_mode: KeywordCheckMode | null;
+  keyword_check_failed_at: number | null;
 }
+
+export type KeywordCheckMode = "must_contain" | "must_not_contain";
 
 export interface SslEventRow {
   id: string;
@@ -51,6 +58,7 @@ export interface CheckRow {
   status_code: number | null;
   response_time_ms: number | null;
   ok: number; // 0/1
+  failure_reason: string | null;
 }
 
 export interface StatusPageRow {

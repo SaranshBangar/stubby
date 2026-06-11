@@ -32,6 +32,9 @@ function MonitorItem({
   }, [m.id, m.last_checked_at]);
 
   const up = m.is_up === 1;
+  // Most recent failure explanation (e.g. a keyword assertion) so users can
+  // tell a content failure from a real outage.
+  const lastFailureReason = checks.find((c) => c.failure_reason)?.failure_reason;
 
   return (
     <li className="rounded-lg border border-border p-4">
@@ -73,6 +76,10 @@ function MonitorItem({
           </Button>
         </div>
       </div>
+
+      {!up && lastFailureReason && (
+        <p className="mt-2 text-xs text-destructive">{lastFailureReason}</p>
+      )}
 
       {showSsl && <SslSection m={m} />}
     </li>

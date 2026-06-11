@@ -69,12 +69,45 @@ export async function PUT(req: Request, { params }: Ctx) {
     }
   }
 
+  // Keyword assertion — only touched when the request mentions it.
+  let keywordEnabled = existing.keyword_check_enabled === 1;
+  let keywordString = existing.keyword_check_string;
+  let keywordMode = existing.keyword_check_mode as string | null;
+  if (body.keyword_check_enabled != null) {
+    keywordEnabled = body.keyword_check_enabled === true;
+  }
+  if (body.keyword_check_string != null) {
+    keywordString = String(body.keyword_check_string).slice(0, 200) || null;
+  }
+  if (body.keyword_check_mode != null) {
+    keywordMode = String(body.keyword_check_mode);
+  }
+  if (keywordEnabled) {
+    if (!keywordString) {
+      return badRequest("keyword_check_string is required when the keyword check is enabled");
+    }
+    if (keywordMode !== "must_contain" && keywordMode !== "must_not_contain") {
+      return badRequest("keyword_check_mode must be must_contain or must_not_contain");
+    }
+  }
+
   await db
     .prepare(
-      `UPDATE monitors SET target_url=?1, interval_minutes=?2, alert_email=?3
-       WHERE id=?4 AND owner_token=?5`,
+      `UPDATE monitors
+          SET target_url=?1, interval_minutes=?2, alert_email=?3,
+              keyword_check_enabled=?4, keyword_check_string=?5, keyword_check_mode=?6
+        WHERE id=?7 AND owner_token=?8`,
     )
-    .bind(targetUrl, interval, alertEmail, id, token)
+    .bind(
+      targetUrl,
+      interval,
+      alertEmail,
+      keywordEnabled ? 1 : 0,
+      keywordString,
+      keywordMode,
+      id,
+      token,
+    )
     .run();
 
   const row = await owned(db, id, token);
