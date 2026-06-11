@@ -44,6 +44,8 @@ export interface Limits {
   canHidePoweredBy: boolean;
   /** Alert channels (Slack/Discord/webhook) a token may save. */
   maxAlertChannels: number;
+  /** Conditional response rules allowed per mock. */
+  maxRulesPerMock: number;
 }
 
 // Allowed interval choices surfaced in the UI. Free clamps to >= its floor.
@@ -71,6 +73,7 @@ export function getLimits(
       maxMonitorsPerStatusPage: intFromEnv(env, "PRO_MAX_MONITORS", 25),
       canHidePoweredBy: true,
       maxAlertChannels: intFromEnv(env, "PRO_MAX_ALERT_CHANNELS", 25),
+      maxRulesPerMock: intFromEnv(env, "PRO_MAX_RULES_PER_MOCK", 5),
     };
   }
   return {
@@ -89,6 +92,7 @@ export function getLimits(
     maxMonitorsPerStatusPage: intFromEnv(env, "FREE_STATUS_PAGE_MONITORS", 5),
     canHidePoweredBy: false,
     maxAlertChannels: intFromEnv(env, "FREE_MAX_ALERT_CHANNELS", 3),
+    maxRulesPerMock: intFromEnv(env, "FREE_MAX_RULES_PER_MOCK", 1),
   };
 }
 

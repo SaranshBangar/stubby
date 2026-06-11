@@ -43,6 +43,27 @@ export type KeywordCheckMode = "must_contain" | "must_not_contain";
 
 export type AlertChannelType = "slack" | "discord" | "webhook";
 
+export type MockRuleConditionType =
+  | "query_param"
+  | "header"
+  | "body_field"
+  | "method";
+
+export type MockRuleConditionOp = "equals" | "contains" | "exists" | "not_exists";
+
+export interface MockRuleRow {
+  id: string;
+  mock_id: string;
+  sort_order: number;
+  condition_type: MockRuleConditionType;
+  condition_key: string;
+  condition_op: MockRuleConditionOp;
+  condition_value: string | null;
+  response_status: number;
+  response_body: string;
+  response_headers: string;
+}
+
 export interface AlertChannelRow {
   id: string;
   owner_token: string;
