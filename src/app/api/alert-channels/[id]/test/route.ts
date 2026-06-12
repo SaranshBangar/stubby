@@ -6,7 +6,7 @@ import type { AlertChannelRow } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-// POST /api/alert-channels/:id/test — send a dummy message to the channel
+// POST /api/alert-channels/:id/test - send a dummy message to the channel
 // so the user can confirm the webhook URL works. Logged like a real alert.
 export async function POST(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);

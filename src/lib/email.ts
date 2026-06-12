@@ -1,9 +1,9 @@
 /**
- * sendEmail() — provider-agnostic email helper.
+ * sendEmail() - provider-agnostic email helper.
  *
  * Currently wraps Resend's HTTP API (no SDK; plain fetch keeps the Worker
  * bundle tiny and edge-compatible). To swap providers, replace the body of
- * sendEmail and keep the signature — callers (the cron alert path) don't
+ * sendEmail and keep the signature - callers (the cron alert path) don't
  * care who delivers the mail.
  */
 
@@ -27,7 +27,7 @@ export async function sendEmail(
   const from = env.ALERT_FROM_EMAIL;
 
   if (!apiKey || !from) {
-    // Don't throw in the cron loop — degrade gracefully and report.
+    // Don't throw in the cron loop - degrade gracefully and report.
     return { ok: false, error: "Email not configured (RESEND_API_KEY/ALERT_FROM_EMAIL)" };
   }
 

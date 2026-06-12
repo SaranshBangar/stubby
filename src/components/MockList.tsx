@@ -31,7 +31,7 @@ export function MockList({
   if (mocks.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No mocks yet. Create one above — it gets a live URL instantly.
+        No mocks yet. Create one above - it gets a live URL instantly.
       </p>
     );
   }

@@ -161,7 +161,7 @@ export function StatusPageForm({
         <Label>Monitors to show</Label>
         {monitors.length === 0 ? (
           <p className="text-xs text-muted-foreground">
-            No monitors yet — add one on the Uptime Monitors tab first.
+            No monitors yet - add one on the Uptime Monitors tab first.
           </p>
         ) : (
           monitors.map((m) => {

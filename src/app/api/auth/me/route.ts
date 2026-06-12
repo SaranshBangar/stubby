@@ -3,7 +3,7 @@ import { ok } from "@/lib/http";
 import { getUserFromRequest, toPublicUser } from "@/lib/auth";
 
 /**
- * GET /api/auth/me — current user from the session cookie, or { user: null }.
+ * GET /api/auth/me - current user from the session cookie, or { user: null }.
  *
  * The client calls this on load: if a user is returned it adopts the account's
  * canonical owner_token (handles returning to a logged-in device after clearing

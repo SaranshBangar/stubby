@@ -29,7 +29,7 @@ export default function AlertsPage() {
           Alert Channels
         </h1>
         <p className="mt-1 text-[13.5px] text-t2">
-          Get monitor alerts in Slack, Discord, or any webhook — in addition to
+          Get monitor alerts in Slack, Discord, or any webhook - in addition to
           email. Attach channels to monitors when you create or edit them.
         </p>
 

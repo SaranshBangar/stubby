@@ -18,7 +18,7 @@ async function owned(db: D1Database, id: string, token: string) {
     .first<StatusPageRow>();
 }
 
-// PUT — full update: title, description, slug, badge, monitor selection.
+// PUT - full update: title, description, slug, badge, monitor selection.
 export async function PUT(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

@@ -5,7 +5,7 @@ import type { MockRow, MockRuleRow } from "@/lib/types";
 
 // ★ The public mock responder. Devs hit this URL; it replays the stored
 // status / headers / body after the optional delay. Responds to ALL methods
-// (devs mock POST/PUT/DELETE too) — one handler, exported under each verb.
+// (devs mock POST/PUT/DELETE too) - one handler, exported under each verb.
 //
 // Dynamic behavior (both resolved at serve time):
 //   - conditional rules: first matching rule (by sort_order) overrides the

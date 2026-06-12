@@ -30,7 +30,7 @@ export function WebhookList({
   if (endpoints.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No endpoints yet. Create one above — anything sent to its URL shows up
+        No endpoints yet. Create one above - anything sent to its URL shows up
         here in real time.
       </p>
     );

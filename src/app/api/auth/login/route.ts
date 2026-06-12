@@ -11,7 +11,7 @@ import {
 } from "@/lib/auth";
 
 /**
- * POST /api/auth/login — email+password sign-in.
+ * POST /api/auth/login - email+password sign-in.
  *
  * On success returns the account's canonical owner_token; the client stores it
  * in localStorage so every existing x-owner-token API call reads this account's
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     .bind(email)
     .first<UserRow>();
 
-  // Same response whether the email is unknown or the password is wrong —
+  // Same response whether the email is unknown or the password is wrong -
   // don't reveal which accounts exist.
   if (!user || !(await verifyPassword(body.password, user.password_hash))) {
     return unauthorized("Invalid email or password");

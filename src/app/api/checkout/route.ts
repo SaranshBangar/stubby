@@ -4,14 +4,14 @@ import { ok, unauthorized, badRequest } from "@/lib/http";
 import { getStripe } from "@/lib/stripe";
 
 /**
- * ★ STRIPE FLOW — step 1 of 3 (create Checkout session).
+ * ★ STRIPE FLOW - step 1 of 3 (create Checkout session).
  *
  * The anonymous owner_token is the user's identity. To upgrade, we open a
  * Stripe Checkout session and stash that token in:
  *   - client_reference_id, and
  *   - subscription metadata,
  * so the webhook (step 3) can map the completed payment back to the token
- * and grant Pro. No email/password is collected by us — Stripe handles the
+ * and grant Pro. No email/password is collected by us - Stripe handles the
  * payment identity; the localStorage token stays the app identity.
  */
 export async function POST(req: Request) {

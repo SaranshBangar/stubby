@@ -11,7 +11,7 @@ import {
 import type { MonitorRow } from "@/lib/types";
 
 /**
- * ★ THE MONITOR CRON LOOP — runs once per minute from a SINGLE Cloudflare
+ * ★ THE MONITOR CRON LOOP - runs once per minute from a SINGLE Cloudflare
  * Cron Trigger (see wrangler.toml + src/worker.ts scheduled()).
  *
  * Why one cron for everything: Cloudflare's free tier allows only 5 cron
@@ -21,7 +21,7 @@ import type { MonitorRow } from "@/lib/types";
  *      last_checked_at, and not expired),
  *   2. pings each one with a timeout, recording a `checks` row,
  *   3. updates the monitor's is_up / last_status / last_checked_at,
- *   4. emails on a state TRANSITION (up->down or down->up) — not every
+ *   4. emails on a state TRANSITION (up->down or down->up) - not every
  *      failing check, to avoid alert spam,
  *   5. prunes old `checks` rows to the tier's history limit.
  *
@@ -46,13 +46,13 @@ export interface CronResult {
 }
 
 /**
- * ★ THE single cron tick — entry point called from src/worker.ts. Every
+ * ★ THE single cron tick - entry point called from src/worker.ts. Every
  * scheduled job lives here (free tier caps cron triggers at 5/account, so
  * we never add another trigger):
  *   1. the monitor uptime loop (runMonitorCron),
  *   2. webhook inspector retention (expired endpoints + overflow requests),
  *   3. alert delivery log pruning.
- * Each step is independently try/caught — one failing subsystem must not
+ * Each step is independently try/caught - one failing subsystem must not
  * starve the others.
  */
 export async function runCron(env: CronEnv): Promise<CronResult> {
@@ -208,7 +208,7 @@ export async function runMonitorCron(env: CronEnv): Promise<CronResult> {
         if (!s.value.ok) result.failed++;
         if (s.value.alertSent) result.alertsSent++;
       } else {
-        // Should be rare — processMonitor swallows its own errors. Counted
+        // Should be rare - processMonitor swallows its own errors. Counted
         // so the tick still returns and other monitors aren't affected.
         result.failed++;
       }
@@ -336,7 +336,7 @@ async function processMonitor(
       .bind(m.id, historyLimit)
       .run();
   } catch {
-    // Swallow — reporting this monitor as processed; next tick retries.
+    // Swallow - reporting this monitor as processed; next tick retries.
   }
 
   // ── Alert on transition only (email + linked channels via sendAlert). ──
@@ -376,7 +376,7 @@ async function processMonitor(
  *
  * Alert ladder: one email per threshold (30/14/7 days). If a cert is first
  * seen already inside a lower threshold we send only the most urgent email
- * and mark the higher thresholds as sent too — never three emails at once.
+ * and mark the higher thresholds as sent too - never three emails at once.
  * All flags reset once days_remaining climbs back above 30 (cert renewed).
  */
 async function processSslCheck(
@@ -390,7 +390,7 @@ async function processSslCheck(
   const port = url.port ? parseInt(url.port, 10) : 443;
   const result = await checkSslCertificate(url.hostname, port, timeoutMs);
 
-  // Runtime can't introspect TLS (e.g. local workerd without node:tls) —
+  // Runtime can't introspect TLS (e.g. local workerd without node:tls) -
   // skip silently rather than recording a misleading "invalid" event.
   if (!result.supported) return false;
 
@@ -462,7 +462,7 @@ async function processSslCheck(
     return sent;
   }
 
-  // Cert is valid again — clear the invalid flag so a future breakage alerts.
+  // Cert is valid again - clear the invalid flag so a future breakage alerts.
   if (m.ssl_invalid_alerted === 1) {
     await db
       .prepare("UPDATE monitors SET ssl_invalid_alerted=0 WHERE id=?1")
@@ -473,7 +473,7 @@ async function processSslCheck(
   if (daysRemaining == null) return sent;
 
   if (daysRemaining > 30) {
-    // Renewed — re-arm all expiry thresholds.
+    // Renewed - re-arm all expiry thresholds.
     if (m.ssl_alert_sent_30 === 1 || m.ssl_alert_sent_14 === 1 || m.ssl_alert_sent_7 === 1) {
       await db
         .prepare(
@@ -517,7 +517,7 @@ function sslExpiryWarningEmail(domain: string, days: number, appUrl: string) {
   return {
     subject: `SSL cert for ${domain} expires in ${days} day${days === 1 ? "" : "s"}`,
     html: `<p>The SSL certificate for <strong>${domain}</strong> expires in <strong>${days} day${days === 1 ? "" : "s"}</strong>.</p>
-       <p>Once it expires, browsers will show a security warning and refuse to load the site. Renew the certificate before then (most providers, like Let's Encrypt, renew automatically — this may mean the automation is broken).</p>
+       <p>Once it expires, browsers will show a security warning and refuse to load the site. Renew the certificate before then (most providers, like Let's Encrypt, renew automatically - this may mean the automation is broken).</p>
        <p style="color:#888">Monitored by Stubby. <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
   };
 }
@@ -527,7 +527,7 @@ function sslExpiredEmail(domain: string, appUrl: string) {
     subject: `SSL cert for ${domain} has expired`,
     html: `<p>The SSL certificate for <strong>${domain}</strong> <strong>has expired</strong>.</p>
        <p>Visitors are now seeing browser security warnings and most clients will refuse to connect. Renew the certificate as soon as possible.</p>
-       <p style="color:#888">You'll only get this email once per incident. — Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
+       <p style="color:#888">You'll only get this email once per incident. - Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
   };
 }
 
@@ -536,11 +536,11 @@ function sslInvalidEmail(domain: string, error: string, appUrl: string) {
     subject: `SSL certificate error on ${domain}`,
     html: `<p>The SSL certificate for <strong>${domain}</strong> failed validation: <code>${error}</code></p>
        <p>This usually means a broken certificate chain, a self-signed cert, or a hostname mismatch. Clients that validate certificates (browsers, most HTTP libraries) will refuse to connect.</p>
-       <p style="color:#888">You'll only get this email once per incident. — Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
+       <p style="color:#888">You'll only get this email once per incident. - Stubby <a href="${appUrl}/monitor">${appUrl}/monitor</a></p>`,
   };
 }
 
-// Stream the response body up to maxBytes, then cancel — keyword checks
+// Stream the response body up to maxBytes, then cancel - keyword checks
 // must not buffer arbitrarily large pages in Worker memory.
 async function readBodyCapped(res: Response, maxBytes: number): Promise<string> {
   if (!res.body) return "";
@@ -572,10 +572,10 @@ function transitionEmail(
     ? `✅ Recovered: ${m.target_url}`
     : `🔴 Down: ${m.target_url}`;
   const emailHtml = nowUp
-    ? `<p>Good news — <a href="${m.target_url}">${m.target_url}</a> is back up (${statusText}).</p>
+    ? `<p>Good news - <a href="${m.target_url}">${m.target_url}</a> is back up (${statusText}).</p>
        <p style="color:#888">Monitored by Stubby. ${appUrl}/monitor</p>`
     : `<p><strong><a href="${m.target_url}">${m.target_url}</a> is down.</strong></p>
        <p>Last check returned ${statusText}.</p>
-       <p style="color:#888">You'll get another email when it recovers. — Stubby ${appUrl}/monitor</p>`;
+       <p style="color:#888">You'll get another email when it recovers. - Stubby ${appUrl}/monitor</p>`;
   return { emailSubject, emailHtml };
 }

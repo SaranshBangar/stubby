@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="232" height="56" viewBox="0 0 116 28" fill="none">
+  <g transform="translate(0,1) scale(0.8125)">
+    <rect width="32" height="32" rx="7" fill="#F97316"></rect>
+    <g fill="#ffffff"><path d="M13.5 8H8v16h5.5v-3H11V11h2.5z"></path><path d="M18.5 8H24v16h-5.5v-3H21V11h-2.5z"></path><circle cx="16" cy="16" r="2.6"></circle></g>
+  </g>
+  <text x="33" y="19.5" font-family="&#39;IBM Plex Mono&#39;,&#39;SF Mono&#39;,ui-monospace,monospace" font-size="16" font-weight="500" letter-spacing="-0.2"><tspan fill="#F97316">stub</tspan><tspan fill="#eeeef0">by</tspan></text>
+</svg>

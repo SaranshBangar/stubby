@@ -5,7 +5,7 @@ import type { MockRow } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-// All ops verify owner_token matches — a token can only touch its own rows.
+// All ops verify owner_token matches - a token can only touch its own rows.
 async function owned(
   db: D1Database,
   id: string,
@@ -25,7 +25,7 @@ export async function GET(req: Request, { params }: Ctx) {
   return row ? ok({ mock: row }) : notFound();
 }
 
-// PUT — partial update of editable fields.
+// PUT - partial update of editable fields.
 export async function PUT(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

@@ -105,7 +105,7 @@ export function MockRulesSection({ mockId }: { mockId: string }) {
         Conditional rules
       </h4>
       <p className="text-xs text-muted-foreground">
-        Evaluated in order on every request — first match wins, otherwise the
+        Evaluated in order on every request - first match wins, otherwise the
         default response is served. Rule bodies support template variables.
       </p>
 

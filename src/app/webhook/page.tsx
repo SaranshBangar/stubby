@@ -35,7 +35,7 @@ export default function WebhookPage() {
           Webhook Inspector
         </h1>
         <p className="mt-1 text-[13.5px] text-t2">
-          Get a URL that captures anything sent to it — method, headers, body —
+          Get a URL that captures anything sent to it - method, headers, body -
           and watch requests arrive live. No signup.
         </p>
 
@@ -77,7 +77,7 @@ export default function WebhookPage() {
         {selected && (
           <section className="mt-10">
             <h2 className="mb-3 font-mono text-[11px] uppercase tracking-wider text-t3">
-              Captured requests — {selected.label || `/w/${selected.id}`}
+              Captured requests - {selected.label || `/w/${selected.id}`}
             </h2>
             <WebhookRequestsPanel endpointId={selected.id} />
           </section>

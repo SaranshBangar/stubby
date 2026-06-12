@@ -4,7 +4,7 @@ import { getDB } from "@/lib/db";
 import type { StatusPageRow } from "@/lib/types";
 
 /**
- * ★ The public status page — no auth, no owner_token anywhere in the
+ * ★ The public status page - no auth, no owner_token anywhere in the
  * response. Rendered server-side per request straight from D1 so the
  * up/down state is live; everything else is static markup (cacheable by
  * any proxy in front).
@@ -51,7 +51,7 @@ export default async function PublicStatusPage({ params }: Ctx) {
   const db = getDB();
   const now = Date.now();
 
-  // Select ONLY public fields — owner_token must never reach the render
+  // Select ONLY public fields - owner_token must never reach the render
   // path (anything the component touches can end up in the RSC payload).
   const page = await db
     .prepare(

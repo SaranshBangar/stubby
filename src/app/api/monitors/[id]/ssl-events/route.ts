@@ -6,7 +6,7 @@ import type { SslEventRow } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-// GET /api/monitors/:id/ssl-events — recent TLS inspections, newest first.
+// GET /api/monitors/:id/ssl-events - recent TLS inspections, newest first.
 export async function GET(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

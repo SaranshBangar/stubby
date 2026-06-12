@@ -25,7 +25,7 @@ export function StatusPageList({
   if (pages.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No status pages yet. Publish one above — it gets a public URL anyone
+        No status pages yet. Publish one above - it gets a public URL anyone
         can view.
       </p>
     );

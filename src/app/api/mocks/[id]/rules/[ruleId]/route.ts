@@ -4,7 +4,7 @@ import { ok, unauthorized, notFound } from "@/lib/http";
 
 type Ctx = { params: Promise<{ id: string; ruleId: string }> };
 
-// DELETE /api/mocks/:id/rules/:ruleId — remove one rule.
+// DELETE /api/mocks/:id/rules/:ruleId - remove one rule.
 export async function DELETE(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

@@ -5,7 +5,7 @@ import { getLimitsForToken, computeExpiresAt } from "@/lib/tier";
 import { generateSlug } from "@/lib/slug";
 import type { WebhookEndpointRow } from "@/lib/types";
 
-// GET /api/webhooks — list this token's capture endpoints (newest first),
+// GET /api/webhooks - list this token's capture endpoints (newest first),
 // with a request count per endpoint for the list UI.
 export async function GET(req: Request) {
   const token = getTokenFromRequest(req);
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   return ok({ endpoints: results ?? [] });
 }
 
-// POST /api/webhooks — create an endpoint. Enforces the tier's endpoint cap.
+// POST /api/webhooks - create an endpoint. Enforces the tier's endpoint cap.
 export async function POST(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
   const now = Date.now();
   const expiresAt = computeExpiresAt(limits, now);
 
-  // The endpoint id doubles as the public slug — retry on the rare clash.
+  // The endpoint id doubles as the public slug - retry on the rare clash.
   for (let attempt = 0; attempt < 5; attempt++) {
     const slug = generateSlug();
     try {

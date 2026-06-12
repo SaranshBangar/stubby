@@ -6,7 +6,7 @@ import { parseOpenApiSpec, extractMockCandidates } from "@/lib/openapiImport";
 import type { MockRow } from "@/lib/types";
 
 /**
- * POST /api/mocks/import-openapi — bulk-create mocks from an OpenAPI 3.x /
+ * POST /api/mocks/import-openapi - bulk-create mocks from an OpenAPI 3.x /
  * Swagger 2.x spec. Accepts a multipart upload (field "file") or a JSON
  * body { "spec": "raw JSON or YAML" }. Imports up to the tier's mock
  * limit; everything beyond is counted as skipped with a reason.

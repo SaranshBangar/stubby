@@ -16,7 +16,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: {
-    default: "Stubby — Mock APIs & uptime monitors, no signup",
+    default: "Stubby - Mock APIs & uptime monitors, no signup",
     template: "%s · Stubby",
   },
   description:
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     "no signup developer tools",
   ],
   openGraph: {
-    title: "Stubby — Mock APIs & uptime monitors, no signup",
+    title: "Stubby - Mock APIs & uptime monitors, no signup",
     description:
       "Instant mock endpoints + uptime monitoring. Zero friction, no account required.",
     type: "website",

@@ -4,7 +4,7 @@ import { ok, unauthorized, notFound } from "@/lib/http";
 
 type Ctx = { params: Promise<{ id: string; requestId: string }> };
 
-// DELETE /api/webhooks/:id/requests/:requestId — remove one captured request.
+// DELETE /api/webhooks/:id/requests/:requestId - remove one captured request.
 export async function DELETE(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

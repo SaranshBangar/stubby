@@ -1,5 +1,5 @@
 /**
- * ★ AUTH — email+password and Google, on the Workers runtime (Web Crypto only,
+ * ★ AUTH - email+password and Google, on the Workers runtime (Web Crypto only,
  * no node:crypto). Sits ON TOP of the owner_token model: a `users` row owns one
  * canonical owner_token, and login hands that token back so the existing
  * x-owner-token API surface keeps working unchanged (see migrations/0009).
@@ -212,7 +212,7 @@ export async function pickOwnerToken(
 export function normalizeEmail(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const email = raw.trim().toLowerCase();
-  // Pragmatic check — real validity is proven by delivery, not regex.
+  // Pragmatic check - real validity is proven by delivery, not regex.
   if (email.length < 3 || email.length > 254) return null;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
   return email;

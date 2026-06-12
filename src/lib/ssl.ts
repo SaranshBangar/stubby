@@ -8,11 +8,11 @@
  *
  * The import is dynamic and every failure mode is caught: if the runtime
  * can't do raw TLS at all we return { supported: false } and the caller
- * skips silently — an inspection problem must never affect uptime status.
+ * skips silently - an inspection problem must never affect uptime status.
  */
 
 export interface SslCheckResult {
-  /** False when the runtime can't perform TLS introspection — skip, don't alert. */
+  /** False when the runtime can't perform TLS introspection - skip, don't alert. */
   supported: boolean;
   /** Cert expiry as epoch ms (readable even for invalid/expired certs). */
   validTo: number | null;

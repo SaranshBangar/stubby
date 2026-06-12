@@ -6,7 +6,7 @@ import type { CheckRow } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-// GET /api/monitors/:id/checks — recent check history, newest first.
+// GET /api/monitors/:id/checks - recent check history, newest first.
 // Count capped by the tier's historyLimit (free sees less than Pro).
 export async function GET(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);

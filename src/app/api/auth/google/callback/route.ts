@@ -15,7 +15,7 @@ import {
 } from "@/lib/auth";
 
 /**
- * GET /api/auth/google/callback — finish Google OAuth.
+ * GET /api/auth/google/callback - finish Google OAuth.
  *
  *   1. verify the `state` (CSRF) against the cookie set in /start,
  *   2. exchange the code for tokens (server-to-server over TLS),
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     redirect(`${appUrl}/account?error=${encodeURIComponent(msg)}`, secure);
 
   // Never let an unexpected throw become a bare 500 that strands the user on
-  // this callback URL — always bounce back to /account with a readable error.
+  // this callback URL - always bounce back to /account with a readable error.
   try {
     return await handleCallback(req, env, appUrl, secure, fail);
   } catch (err) {
@@ -104,7 +104,7 @@ async function handleCallback(
     .first<UserRow>();
 
   if (!user) {
-    // No google_sub yet — link to an existing email account if one exists.
+    // No google_sub yet - link to an existing email account if one exists.
     const byEmail = await db
       .prepare("SELECT * FROM users WHERE email = ?1 LIMIT 1")
       .bind(email)

@@ -4,7 +4,7 @@ import { ok, unauthorized, notFound } from "@/lib/http";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-// DELETE — remove a channel; join rows + delivery log cascade via FK.
+// DELETE - remove a channel; join rows + delivery log cascade via FK.
 export async function DELETE(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: Ctx) {
   return row ? ok({ endpoint: row }) : notFound();
 }
 
-// DELETE — removes the endpoint; its captured requests cascade via FK.
+// DELETE - removes the endpoint; its captured requests cascade via FK.
 export async function DELETE(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

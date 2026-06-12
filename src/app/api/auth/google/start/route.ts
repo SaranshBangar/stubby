@@ -9,7 +9,7 @@ import {
 import { getTokenFromRequest } from "@/lib/token";
 
 /**
- * GET /api/auth/google/start — kick off Google OAuth (authorization code).
+ * GET /api/auth/google/start - kick off Google OAuth (authorization code).
  *
  * Stashes a CSRF `state` and the device's current anonymous owner_token (to
  * adopt for brand-new accounts) in short-lived httpOnly cookies, then redirects

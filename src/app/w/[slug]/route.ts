@@ -3,7 +3,7 @@ import {
   withCorsPreflight,
 } from "@/lib/webhookCapture";
 
-// ★ Webhook receiver — root path (/w/<slug>). Every method is captured and
+// ★ Webhook receiver - root path (/w/<slug>). Every method is captured and
 // ACKed with 200 {"ok":true}. Sub-paths land in /w/[slug]/[...path].
 
 type Ctx = { params: Promise<{ slug: string }> };

@@ -1,6 +1,6 @@
 /**
  * Template variables for dynamic mock responses, resolved fresh on every
- * request to /m/<slug>. Single-pass string replacement — no nesting, no
+ * request to /m/<slug>. Single-pass string replacement - no nesting, no
  * loops, no scripting. Malformed or unknown tokens are left as-is.
  */
 
@@ -82,7 +82,7 @@ function randInt(lo: number, hi: number): number {
   return lo + Math.floor(Math.random() * (hi - lo + 1));
 }
 
-// Small hardcoded pool — no faker dependency needed.
+// Small hardcoded pool - no faker dependency needed.
 const NAMES = [
   "Alice Johnson", "Bob Martinez", "Carol Chen", "David Okafor", "Emma Wilson",
   "Felix Novak", "Grace Kim", "Hassan Ali", "Ines Costa", "Jack Murphy",

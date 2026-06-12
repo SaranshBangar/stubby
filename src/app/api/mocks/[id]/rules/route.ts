@@ -16,7 +16,7 @@ async function ownedMock(db: D1Database, id: string, token: string) {
     .first<{ id: string }>();
 }
 
-// GET /api/mocks/:id/rules — the mock's rules in evaluation order.
+// GET /api/mocks/:id/rules - the mock's rules in evaluation order.
 export async function GET(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
@@ -31,7 +31,7 @@ export async function GET(req: Request, { params }: Ctx) {
   return ok({ rules: results ?? [] });
 }
 
-// POST /api/mocks/:id/rules — append a rule. Enforces the tier's per-mock cap.
+// POST /api/mocks/:id/rules - append a rule. Enforces the tier's per-mock cap.
 export async function POST(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

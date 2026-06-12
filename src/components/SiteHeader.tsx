@@ -4,12 +4,22 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AuthMenu } from "@/components/AuthMenu";
 
-// Wordmark: orange "stub" + foreground "by", monospace — the design's logo.
+// Wordmark: the orange Stubby mark next to "stub" (accent) + "by" (foreground).
 function Wordmark() {
   return (
-    <span className="font-mono text-[15px] font-medium tracking-tight">
-      <span className="text-brand">stub</span>
-      <span className="text-t1">by</span>
+    <span className="flex items-center gap-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo/stubby-mark.svg"
+        alt="Stubby"
+        width={20}
+        height={20}
+        className="h-5 w-5 shrink-0"
+      />
+      <span className="font-mono text-[15px] font-medium tracking-tight">
+        <span className="text-brand">stub</span>
+        <span className="text-t1">by</span>
+      </span>
     </span>
   );
 }
@@ -75,12 +85,6 @@ export function SiteHeader({
               <Wordmark />
             </Link>
             <nav className="flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/mock">Mock Builder</Link>
-              </Button>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/monitor">Monitors</Link>
-              </Button>
               <AuthMenu />
               <Button asChild size="sm">
                 <Link href="/mock">Open free tool</Link>

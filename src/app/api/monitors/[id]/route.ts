@@ -22,7 +22,7 @@ export async function GET(req: Request, { params }: Ctx) {
   return row ? ok({ monitor: row }) : notFound();
 }
 
-// PUT — edit interval / alert_email / target_url.
+// PUT - edit interval / alert_email / target_url.
 export async function PUT(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
@@ -69,7 +69,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     }
   }
 
-  // Keyword assertion — only touched when the request mentions it.
+  // Keyword assertion - only touched when the request mentions it.
   let keywordEnabled = existing.keyword_check_enabled === 1;
   let keywordString = existing.keyword_check_string;
   let keywordMode = existing.keyword_check_mode as string | null;

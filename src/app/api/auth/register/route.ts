@@ -14,7 +14,7 @@ import {
 } from "@/lib/auth";
 
 /**
- * POST /api/auth/register — email+password sign-up.
+ * POST /api/auth/register - email+password sign-up.
  *
  * Adopts the device's current anonymous owner_token (sent via x-owner-token)
  * as the account's canonical token, so work created before signup is kept and

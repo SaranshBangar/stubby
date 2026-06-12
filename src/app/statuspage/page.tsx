@@ -43,7 +43,7 @@ export default function StatusPageBuilderPage() {
         <Card className="mt-6 bg-s1">
           <CardHeader className="border-b border-b1">
             <CardTitle className="font-mono text-[11px] uppercase tracking-wider text-t3">
-              {editing ? `Edit — ${editing.title}` : "New status page"}
+              {editing ? `Edit - ${editing.title}` : "New status page"}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">

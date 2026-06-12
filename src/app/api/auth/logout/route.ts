@@ -9,7 +9,7 @@ import {
 } from "@/lib/auth";
 
 /**
- * POST /api/auth/logout — end the session.
+ * POST /api/auth/logout - end the session.
  *
  * Deletes the session row and clears the cookie. The client also drops its
  * stored owner_token and mints a fresh anonymous one, so the device reverts to

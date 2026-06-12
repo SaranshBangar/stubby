@@ -2,7 +2,7 @@ import type { MockRuleRow } from "@/lib/types";
 
 /**
  * Conditional mock rule evaluation. Rules are checked in sort_order against
- * the incoming request; the first match wins. Evaluation never throws — a
+ * the incoming request; the first match wins. Evaluation never throws - a
  * weird request shape just means "no match".
  */
 
@@ -22,7 +22,7 @@ export function findMatchingRule(
     try {
       if (matches(rule, ctx)) return rule;
     } catch {
-      // A broken rule must not take the mock down — skip it.
+      // A broken rule must not take the mock down - skip it.
     }
   }
   return null;

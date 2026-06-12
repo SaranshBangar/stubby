@@ -3,15 +3,15 @@ import { getDB, getEnv } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 
 /**
- * ★ STRIPE FLOW — steps 2 & 3 (webhook: unlock / revoke Pro).
+ * ★ STRIPE FLOW - steps 2 & 3 (webhook: unlock / revoke Pro).
  *
  * Stripe calls this endpoint on subscription lifecycle events. We:
- *   1. verify the signature (constructEventAsync — edge/Web-Crypto safe),
+ *   1. verify the signature (constructEventAsync - edge/Web-Crypto safe),
  *   2. read owner_token from the session/subscription metadata,
  *   3. upsert a row in `accounts` so tier.ts treats that token as Pro
  *      (status 'active'), or flips it to 'canceled' on cancellation.
  *
- * The same localStorage token the user already has becomes Pro — nothing for
+ * The same localStorage token the user already has becomes Pro - nothing for
  * them to "log into". To support a user switching browsers later, you'd add a
  * "restore" flow (email a magic link carrying the token); out of scope here.
  */
@@ -103,7 +103,7 @@ async function upsertAccount(
     now: number;
   },
 ) {
-  // owner_token is UNIQUE — upsert on conflict.
+  // owner_token is UNIQUE - upsert on conflict.
   await db
     .prepare(
       `INSERT INTO accounts (id, owner_token, stripe_customer, stripe_sub, status, created_at, updated_at)

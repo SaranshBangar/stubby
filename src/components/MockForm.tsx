@@ -106,7 +106,7 @@ export function MockForm({ onCreated }: { onCreated: (m: MockRow) => void }) {
         />
         <details className="text-xs text-muted-foreground">
           <summary className="cursor-pointer select-none hover:text-t1">
-            Variables reference — tokens resolved fresh on every request
+            Variables reference - tokens resolved fresh on every request
           </summary>
           <dl className="mt-2 grid gap-x-4 gap-y-0.5 font-mono sm:grid-cols-2">
             {[

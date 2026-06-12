@@ -6,7 +6,7 @@ import type { AlertChannelRow } from "@/lib/types";
 
 const CHANNEL_TYPES = ["slack", "discord", "webhook"] as const;
 
-// GET /api/alert-channels — list this token's channels (newest first).
+// GET /api/alert-channels - list this token's channels (newest first).
 export async function GET(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
   return ok({ channels: results ?? [] });
 }
 
-// POST /api/alert-channels — save a channel. Enforces the tier's cap.
+// POST /api/alert-channels - save a channel. Enforces the tier's cap.
 export async function POST(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

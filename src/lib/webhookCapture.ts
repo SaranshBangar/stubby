@@ -30,7 +30,7 @@ export async function captureWebhookRequest(
   }
 
   // ── Snapshot the request. Each piece guarded so a weird payload can't
-  // make the receiver fail — capture what we can, always ACK. ──
+  // make the receiver fail - capture what we can, always ACK. ──
   const url = new URL(req.url);
   const path = subPath.length > 0 ? `/${subPath.join("/")}` : "/";
 
@@ -50,7 +50,7 @@ export async function captureWebhookRequest(
         ? text.slice(0, WEBHOOK_BODY_MAX_BYTES)
         : text;
   } catch {
-    // Unreadable body (aborted stream etc.) — store empty, still ACK.
+    // Unreadable body (aborted stream etc.) - store empty, still ACK.
   }
 
   const ip =
@@ -96,7 +96,7 @@ export async function captureWebhookRequest(
       .bind(endpoint.id, cap)
       .run();
   } catch {
-    // A write hiccup must not bounce the sender — still ACK.
+    // A write hiccup must not bounce the sender - still ACK.
   }
 
   return jsonRes({ ok: true }, 200);

@@ -12,7 +12,7 @@ async function ownedEndpoint(db: D1Database, id: string, token: string) {
     .first<{ id: string }>();
 }
 
-// GET /api/webhooks/:id/requests — captured requests, newest first.
+// GET /api/webhooks/:id/requests - captured requests, newest first.
 // Paginated via ?limit & ?offset (the UI polls page 1 every 3s).
 export async function GET(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
@@ -49,7 +49,7 @@ export async function GET(req: Request, { params }: Ctx) {
   return ok({ requests: results ?? [], total: totalRow?.n ?? 0 });
 }
 
-// DELETE /api/webhooks/:id/requests — clear all captured requests.
+// DELETE /api/webhooks/:id/requests - clear all captured requests.
 export async function DELETE(req: Request, { params }: Ctx) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

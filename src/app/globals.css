@@ -2,12 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Stubby palette — burnt-orange accent on near-black surfaces, IBM Plex type.
+/* Stubby palette - burnt-orange accent on near-black surfaces, IBM Plex type.
    Mirrors the claude.ai/design tokens. Dark is the default render (`.dark` is
    set on <html> in layout.tsx); a `.light` variant ships for completeness. */
 @layer base {
   :root {
-    /* ── Raw design tokens (hex/rgba) — consumed by Tailwind via the config ── */
+    /* ── Raw design tokens (hex/rgba) - consumed by Tailwind via the config ── */
     --bg: #0a0a0c;
     --s1: #111114;
     --s2: #18181c;
@@ -85,6 +85,9 @@
 @layer base {
   * {
     border-color: hsl(var(--border));
+  }
+  html {
+    scroll-behavior: smooth;
   }
   body {
     background-color: hsl(var(--background));

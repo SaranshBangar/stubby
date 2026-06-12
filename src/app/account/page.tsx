@@ -83,7 +83,7 @@ function AccountInner() {
             </CardHeader>
             <CardContent className="space-y-5 pt-6">
               <p className="text-[13px] text-t2">
-                Optional — Stubby works with no account. Sign in to sync your
+                Optional - Stubby works with no account. Sign in to sync your
                 work across devices.
               </p>
 

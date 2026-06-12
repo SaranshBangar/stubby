@@ -16,7 +16,7 @@ import {
 const TYPE_HINTS: Record<AlertChannelType, string> = {
   slack: "Slack → App settings → Incoming Webhooks → copy the URL",
   discord: "Discord → Channel settings → Integrations → Webhooks → copy the URL",
-  webhook: "Any HTTPS endpoint — we POST a JSON payload on each alert",
+  webhook: "Any HTTPS endpoint - we POST a JSON payload on each alert",
 };
 
 export function AlertChannelForm({

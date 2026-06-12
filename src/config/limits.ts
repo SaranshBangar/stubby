@@ -2,7 +2,7 @@
  * ★ SINGLE SOURCE OF TRUTH for tier limits.
  *
  * Tune these numbers here (or override via env vars). Every limit check in
- * the app imports from this file — change a number once, it applies
+ * the app imports from this file - change a number once, it applies
  * everywhere (API create routes, cron interval floor, history pruning).
  */
 

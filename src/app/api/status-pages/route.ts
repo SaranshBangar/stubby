@@ -9,7 +9,7 @@ import {
 } from "@/lib/statusPages";
 import type { StatusPageRow, StatusPageMonitorRow } from "@/lib/types";
 
-// GET /api/status-pages — owner's pages with their monitor selections.
+// GET /api/status-pages - owner's pages with their monitor selections.
 export async function GET(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   });
 }
 
-// POST /api/status-pages — create a page. Enforces page count + monitors-per-page.
+// POST /api/status-pages - create a page. Enforces page count + monitors-per-page.
 export async function POST(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();

@@ -60,7 +60,7 @@ export function parseStatusPageBody(
   };
 }
 
-// All monitor_ids must belong to this token — no exposing someone else's
+// All monitor_ids must belong to this token - no exposing someone else's
 // monitor on your page.
 export async function ownsAllMonitors(
   db: D1Database,

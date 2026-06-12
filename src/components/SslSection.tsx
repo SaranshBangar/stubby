@@ -46,7 +46,7 @@ export function SslSection({ m }: { m: MonitorRow }) {
 
       {m.ssl_last_checked_at == null ? (
         <p className="text-xs text-muted-foreground">
-          Not inspected yet — the certificate is checked alongside each uptime
+          Not inspected yet - the certificate is checked alongside each uptime
           check.
         </p>
       ) : (
@@ -56,17 +56,17 @@ export function SslSection({ m }: { m: MonitorRow }) {
             <dd className="font-mono text-t1">
               {m.ssl_expiry_date != null
                 ? new Date(m.ssl_expiry_date).toLocaleDateString()
-                : "—"}
+                : "-"}
             </dd>
           </div>
           <div>
             <dt className="text-t3">Days remaining</dt>
-            <dd className="font-mono text-t1">{m.ssl_days_remaining ?? "—"}</dd>
+            <dd className="font-mono text-t1">{m.ssl_days_remaining ?? "-"}</dd>
           </div>
           <div className="col-span-2">
             <dt className="text-t3">Issuer</dt>
             <dd className="truncate font-mono text-t1" title={m.ssl_issuer ?? ""}>
-              {m.ssl_issuer ?? "—"}
+              {m.ssl_issuer ?? "-"}
             </dd>
           </div>
         </dl>
@@ -90,7 +90,7 @@ export function SslSection({ m }: { m: MonitorRow }) {
                 <td className="whitespace-nowrap py-1 pr-4 text-t2">
                   {new Date(e.checked_at).toLocaleString()}
                 </td>
-                <td className="py-1 pr-4 text-t1">{e.days_remaining ?? "—"}</td>
+                <td className="py-1 pr-4 text-t1">{e.days_remaining ?? "-"}</td>
                 <td className="py-1 pr-4">
                   {e.valid === 1 ? (
                     <span className="text-success">valid</span>
@@ -98,7 +98,7 @@ export function SslSection({ m }: { m: MonitorRow }) {
                     <span className="text-destructive">invalid</span>
                   )}
                 </td>
-                <td className="break-all py-1 text-t2">{e.error ?? "—"}</td>
+                <td className="break-all py-1 text-t2">{e.error ?? "-"}</td>
               </tr>
             ))}
           </tbody>

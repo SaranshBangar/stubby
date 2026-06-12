@@ -7,7 +7,7 @@ import type { MockRow } from "@/lib/types";
 
 // No Node APIs; keep work minimal (CPU budget). Runs on the Workers runtime.
 
-// GET /api/mocks — list this token's mocks (newest first).
+// GET /api/mocks - list this token's mocks (newest first).
 export async function GET(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   return ok({ mocks: results ?? [] });
 }
 
-// POST /api/mocks — create a mock. Enforces the tier's max-mocks limit.
+// POST /api/mocks - create a mock. Enforces the tier's max-mocks limit.
 export async function POST(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   const rawBody = body.body ?? {};
   const bodyJson = typeof rawBody === "string" ? rawBody : JSON.stringify(rawBody);
 
-  // Optional custom slug (Pro nicety) — validate; else auto-generate.
+  // Optional custom slug (Pro nicety) - validate; else auto-generate.
   let slug = body.slug;
   if (slug != null) {
     if (!isValidSlug(slug)) return badRequest("Invalid slug");
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
   const expiresAt = computeExpiresAt(limits, now);
   const id = crypto.randomUUID();
 
-  // Insert with slug-collision retry (UNIQUE). Custom slugs don't retry —
+  // Insert with slug-collision retry (UNIQUE). Custom slugs don't retry -
   // a clash there is a real conflict the user should see.
   const headersJson = JSON.stringify(headers);
   for (let attempt = 0; attempt < 5; attempt++) {

@@ -2,12 +2,12 @@ import { sendEmail } from "@/lib/email";
 import type { AlertChannelRow, MonitorRow } from "@/lib/types";
 
 /**
- * ★ Multi-channel alert dispatch. One entry point — sendAlert() — fans an
+ * ★ Multi-channel alert dispatch. One entry point - sendAlert() - fans an
  * alert out to the monitor's email (the original behavior) plus every
  * Slack / Discord / generic-webhook channel linked to the monitor.
  *
  * Resilience contract: every channel dispatch is independently try/caught
- * and logged to alert_delivery_log — one bad webhook URL must never stop
+ * and logged to alert_delivery_log - one bad webhook URL must never stop
  * the email or the other channels.
  */
 
@@ -44,7 +44,7 @@ export async function sendAlert(
 ): Promise<boolean> {
   let anySent = false;
 
-  // 1. Email — existing behavior, kept first.
+  // 1. Email - existing behavior, kept first.
   try {
     const res = await sendEmail(env, {
       to: monitor.alert_email,
@@ -142,7 +142,7 @@ function buildChannelPayload(
 ): unknown {
   const label = monitor?.target_url ?? "Stubby";
   const when = new Date().toISOString();
-  const line = `${eventEmoji(content.event)} ${label} — ${content.details} (${when})`;
+  const line = `${eventEmoji(content.event)} ${label} - ${content.details} (${when})`;
 
   switch (type) {
     case "slack":

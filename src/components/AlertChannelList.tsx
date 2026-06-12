@@ -12,7 +12,7 @@ const TYPE_ICONS: Record<AlertChannelType, React.ReactNode> = {
   webhook: <Webhook className="h-3.5 w-3.5" />,
 };
 
-// Webhook URLs are secrets — show just enough to recognize them.
+// Webhook URLs are secrets - show just enough to recognize them.
 function maskUrl(url: string): string {
   try {
     const u = new URL(url);

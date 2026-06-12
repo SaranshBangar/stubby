@@ -14,7 +14,7 @@ const CHANGE_EVENT = "stubby:owner-token-changed";
  * account's canonical token (see useAuth) so the same resources load on every
  * device. This token scopes all API calls (sent as x-owner-token).
  *
- * Returns null until hydrated (avoids SSR/client mismatch) — treat as loading.
+ * Returns null until hydrated (avoids SSR/client mismatch) - treat as loading.
  */
 export function useOwnerToken(): string | null {
   const [token, setToken] = useState<string | null>(null);

@@ -51,7 +51,7 @@ function MonitorItem({
         <Sparkline checks={checks} />
         <div className="flex items-center gap-2">
           <span className="font-mono text-xs text-muted-foreground">
-            {m.last_status != null ? `HTTP ${m.last_status}` : "—"}
+            {m.last_status != null ? `HTTP ${m.last_status}` : "-"}
           </span>
           {m.target_url.startsWith("https://") && (
             <Button
@@ -96,7 +96,7 @@ export function MonitorList({
   if (monitors.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No monitors yet. Add a URL above — we&apos;ll ping it on schedule and
+        No monitors yet. Add a URL above - we&apos;ll ping it on schedule and
         email you if it goes down.
       </p>
     );

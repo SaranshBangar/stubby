@@ -24,7 +24,7 @@ export function CopyButton({
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
         } catch {
-          /* clipboard blocked — ignore */
+          /* clipboard blocked - ignore */
         }
       }}
       aria-label={label ? `Copy ${label}` : "Copy"}

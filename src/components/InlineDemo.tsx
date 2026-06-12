@@ -17,7 +17,7 @@ const DEMO_JSON = `{
 
 // Live, functional demo styled as the design's split panel: edit JSON on the
 // left, get a real /m/<slug> endpoint on the right. Same anon-token flow as the
-// full builder — no signup, exactly the product promise.
+// full builder - no signup, exactly the product promise.
 export function InlineDemo() {
   useOwnerToken();
   const [body, setBody] = useState(DEMO_JSON);
@@ -50,7 +50,7 @@ export function InlineDemo() {
 
   return (
     <div className="grid grid-cols-1 overflow-hidden rounded-md border border-b1 bg-s1 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.55)] md:grid-cols-2">
-      {/* LEFT — form */}
+      {/* LEFT - form */}
       <div className="border-b border-b1 md:border-b-0 md:border-r">
         <div className="flex items-center gap-1.5 border-b border-b1 bg-s2 px-3.5 py-2.5">
           <span className="h-1.5 w-1.5 rounded-full bg-[#ff5f57]" />
@@ -85,7 +85,7 @@ export function InlineDemo() {
         </div>
       </div>
 
-      {/* RIGHT — result */}
+      {/* RIGHT - result */}
       <div>
         <div className="flex items-center gap-1.5 border-b border-b1 bg-s2 px-3.5 py-2.5">
           <span className="font-mono text-[11px] text-t3">result</span>

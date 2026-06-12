@@ -187,7 +187,7 @@ export function WebhookRequestsPanel({ endpointId }: { endpointId: string }) {
       setRequests(d.requests);
       setTotal(d.total);
     } catch {
-      /* transient poll failure — keep last data */
+      /* transient poll failure - keep last data */
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,7 @@ import { getLimitsForToken, computeExpiresAt, clampInterval } from "@/lib/tier";
 import { INTERVAL_CHOICES } from "@/config/limits";
 import type { MonitorRow } from "@/lib/types";
 
-// GET /api/monitors — list this token's monitors.
+// GET /api/monitors - list this token's monitors.
 export async function GET(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   return ok({ monitors: results ?? [] });
 }
 
-// POST /api/monitors — create a monitor. Enforces count + interval-floor.
+// POST /api/monitors - create a monitor. Enforces count + interval-floor.
 export async function POST(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
