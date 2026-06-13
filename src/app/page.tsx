@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LandingDemo } from "@/components/LandingDemo";
-import { UpgradeButton } from "@/components/UpgradeButton";
+import { PricingProCta } from "@/components/PricingProCta";
+import { HideForPro } from "@/components/HideForPro";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { Button } from "@/components/ui/button";
 import { getLimits } from "@/config/limits";
@@ -38,8 +39,7 @@ export default function Home() {
             </h1>
 
             <p className="mx-auto mt-5 max-w-[600px] text-[clamp(15px,1.5vw,18px)] leading-relaxed text-t2">
-              Open it and use it - no account required. Everything runs the
-              moment the page loads.
+              Open it and use it - no account required. Everything runs the moment the page loads.
             </p>
 
             <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -50,31 +50,20 @@ export default function Home() {
                 <a href="#features">See how it works</a>
               </Button>
             </div>
-            <div className="mt-3.5 font-mono text-xs text-t3">
-              an account is optional - only for syncing across devices
-            </div>
+            <div className="mt-3.5 font-mono text-xs text-t3">an account is optional - only for syncing across devices</div>
 
             <div className="mt-[52px] text-left">
-              <div className="mb-3.5 text-center font-mono text-[11px] tracking-[0.06em] text-t3">
-                SEE THE TOOLS, LIVE
-              </div>
+              <div className="mb-3.5 text-center font-mono text-[11px] tracking-[0.06em] text-t3">SEE THE TOOLS, LIVE</div>
               <LandingDemo />
             </div>
           </div>
         </section>
 
         {/* ── Features 2×2 ── */}
-        <section
-          id="features"
-          className="mx-auto max-w-[1160px] scroll-mt-16 px-6 py-16"
-        >
+        <section id="features" className="mx-auto max-w-[1160px] scroll-mt-16 px-6 py-16">
           <div className="mb-8 flex items-baseline gap-4">
-            <h2 className="text-[clamp(22px,3vw,32px)] font-semibold tracking-[-0.02em] text-t1">
-              Five tools. One tab.
-            </h2>
-            <span className="font-mono text-xs text-t3">
-              nothing else to install
-            </span>
+            <h2 className="text-[clamp(22px,3vw,32px)] font-semibold tracking-[-0.02em] text-t1">Five tools. One tab.</h2>
+            <span className="font-mono text-xs text-t3">nothing else to install</span>
           </div>
           <div className="grid gap-px overflow-hidden rounded-md border border-b1 bg-b1 sm:grid-cols-2">
             <FeatureCard
@@ -86,12 +75,8 @@ export default function Home() {
               span
             >
               <MethodBadge method="POST" />
-              <code className="font-mono text-xs text-brand">
-                stub.by/m/r4nd0m
-              </code>
-              <span className="ml-auto font-mono text-[11px] text-t3">
-                201 Created
-              </span>
+              <code className="font-mono text-xs text-brand">stub.by/m/r4nd0m</code>
+              <span className="ml-auto font-mono text-[11px] text-t3">201 Created</span>
             </FeatureCard>
 
             <FeatureCard
@@ -102,9 +87,7 @@ export default function Home() {
               desc="Ping any URL on your schedule and track its TLS cert. Get alerted on downtime and at 30 / 14 / 7 days before expiry."
             >
               <Pill up />
-              <code className="flex-1 truncate font-mono text-xs text-t2">
-                api.myapp.com
-              </code>
+              <code className="flex-1 truncate font-mono text-xs text-t2">api.myapp.com</code>
               <span className="inline-flex items-center gap-1 rounded-[2px] border border-success/25 bg-success/10 px-[7px] py-[2px] font-mono text-[11px] font-medium text-success">
                 SSL 84d
               </span>
@@ -119,46 +102,20 @@ export default function Home() {
             >
               <MethodBadge method="POST" />
               <code className="font-mono text-xs text-t1">/hook/stripe</code>
-              <span className="ml-auto font-mono text-[11px] text-t3">
-                1.2 kB
-              </span>
+              <span className="ml-auto font-mono text-[11px] text-t3">1.2 kB</span>
             </FeatureCard>
 
-            <FeatureCard
-              href="/statuspage"
-              icon="status"
-              n="04"
-              title="Status Pages"
-              desc="Publish a public uptime page for your services."
-            >
+            <FeatureCard href="/statuspage" icon="status" n="04" title="Status Pages" desc="Publish a public uptime page for your services.">
               <Pill up />
-              <code className="flex-1 truncate font-mono text-xs text-t2">
-                /status/acme
-              </code>
-              <span className="font-mono text-[11px] text-success">
-                99.9%
-              </span>
+              <code className="flex-1 truncate font-mono text-xs text-t2">/status/acme</code>
+              <span className="font-mono text-[11px] text-success">99.9%</span>
             </FeatureCard>
 
-            <FeatureCard
-              href="/alerts"
-              icon="alerts"
-              n="05"
-              title="Alert Channels"
-              desc="Email, Slack, Discord, and custom webhook notifications."
-            >
-              <span className="rounded-[2px] bg-s3 px-[7px] py-[2px] font-mono text-[11px] text-t2">
-                Email
-              </span>
-              <span className="rounded-[2px] bg-s3 px-[7px] py-[2px] font-mono text-[11px] text-t2">
-                Slack
-              </span>
-              <span className="rounded-[2px] bg-s3 px-[7px] py-[2px] font-mono text-[11px] text-t2">
-                Discord
-              </span>
-              <span className="rounded-[2px] bg-s3 px-[7px] py-[2px] font-mono text-[11px] text-t2">
-                Webhook
-              </span>
+            <FeatureCard href="/alerts" icon="alerts" n="05" title="Alert Channels" desc="Email, Slack, Discord, and custom webhook notifications.">
+              <span className="rounded-[2px] bg-s3 px-[7px] py-[2px] font-mono text-[11px] text-t2">Email</span>
+              <span className="rounded-[2px] bg-s3 px-[7px] py-[2px] font-mono text-[11px] text-t2">Slack</span>
+              <span className="rounded-[2px] bg-s3 px-[7px] py-[2px] font-mono text-[11px] text-t2">Discord</span>
+              <span className="rounded-[2px] bg-s3 px-[7px] py-[2px] font-mono text-[11px] text-t2">Webhook</span>
             </FeatureCard>
           </div>
         </section>
@@ -167,8 +124,7 @@ export default function Home() {
         <section className="border-y border-b1 bg-s1 px-6 py-12">
           <div className="mx-auto flex max-w-[1160px] flex-col items-center gap-8">
             <div className="text-center font-mono text-[clamp(15px,2vw,19px)] tracking-[-0.01em] text-t1">
-              No account. No extension. No ads.{" "}
-              <span className="text-brand">Just the tool.</span>
+              No account. No extension. No ads. <span className="text-brand">Just the tool.</span>
             </div>
             <div className="grid w-full max-w-[680px] grid-cols-2 gap-px overflow-hidden rounded-md border border-b1 bg-b1 sm:grid-cols-4">
               {[
@@ -178,12 +134,8 @@ export default function Home() {
                 { n: "∞", label: "free forever tier" },
               ].map((s) => (
                 <div key={s.label} className="bg-background px-4 py-5 text-center">
-                  <div className="font-mono text-[30px] font-semibold leading-none tracking-[-0.02em] text-brand">
-                    {s.n}
-                  </div>
-                  <div className="mt-2 font-mono text-xs tracking-[0.04em] text-t2">
-                    {s.label}
-                  </div>
+                  <div className="font-mono text-[30px] font-semibold leading-none tracking-[-0.02em] text-brand">{s.n}</div>
+                  <div className="mt-2 font-mono text-xs tracking-[0.04em] text-t2">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -193,16 +145,11 @@ export default function Home() {
         {/* ── Pricing ── */}
         <section id="pricing" className="mx-auto max-w-[1160px] px-6 py-16">
           <div className="mb-12 text-center">
-            <h2 className="text-[clamp(24px,3vw,36px)] font-semibold tracking-[-0.02em] text-t1">
-              Simple pricing.
-            </h2>
-            <p className="mt-2.5 text-[15px] text-t2">
-              The free tier is genuinely useful. Upgrade only when you outgrow
-              it.
-            </p>
+            <h2 className="text-[clamp(24px,3vw,36px)] font-semibold tracking-[-0.02em] text-t1">Simple pricing.</h2>
+            <p className="mt-2.5 text-[15px] text-t2">The free tier is genuinely useful. Upgrade only when you outgrow it.</p>
           </div>
           <div className="mx-auto grid max-w-[760px] gap-4 sm:grid-cols-2">
-            <PlanCard name="Free" price="$0" sub="forever, no card">
+            <PlanCard name="Free" price="₹0" sub="forever, no card">
               <PlanFeatures
                 items={[
                   "All four tools, no signup",
@@ -220,7 +167,7 @@ export default function Home() {
               </Button>
             </PlanCard>
 
-            <PlanCard name="Pro" price="$7" sub="per month" recommended>
+            <PlanCard name="Pro" price="₹99" sub="one-time, forever" recommended limitedOffer>
               <PlanFeatures
                 items={[
                   "Persistent resources - never expire",
@@ -232,12 +179,10 @@ export default function Home() {
                   "Custom status page - no Stubby branding",
                 ]}
               />
-              <UpgradeButton className="w-full">Get Pro</UpgradeButton>
+              <PricingProCta />
             </PlanCard>
           </div>
-          <p className="mt-6 text-center font-mono text-[12.5px] text-t3">
-            No asterisks. No usage traps. Cancel any time.
-          </p>
+          <p className="mt-6 text-center font-mono text-[12.5px] text-t3">No asterisks. No subscriptions. One payment, Pro forever.</p>
         </section>
 
         {/* ── Sync callout ── */}
@@ -261,13 +206,9 @@ export default function Home() {
               </svg>
             </div>
             <div className="min-w-[240px] flex-1">
-              <h3 className="mb-1.5 text-[17px] font-semibold tracking-[-0.01em] text-t1">
-                Want to sync across devices?
-              </h3>
+              <h3 className="mb-1.5 text-[17px] font-semibold tracking-[-0.01em] text-t1">Want to sync across devices?</h3>
               <p className="text-sm leading-relaxed text-t2">
-                Everything works without an account. Create one only if you want
-                your mocks, monitors, and webhooks available on multiple
-                devices.
+                Everything works without an account. Create one only if you want your mocks, monitors, and webhooks available on multiple devices.
               </p>
             </div>
             <Button asChild variant="secondary" className="shrink-0">
@@ -278,9 +219,7 @@ export default function Home() {
 
         {/* ── FAQ ── */}
         <section className="mx-auto max-w-[760px] px-6 pb-16 pt-12">
-          <h2 className="mb-7 text-[22px] font-semibold tracking-[-0.02em] text-t1">
-            FAQ
-          </h2>
+          <h2 className="mb-7 text-[22px] font-semibold tracking-[-0.02em] text-t1">FAQ</h2>
           <FaqAccordion
             items={[
               {
@@ -293,7 +232,7 @@ export default function Home() {
               },
               {
                 q: "What is the difference between Free and Pro?",
-                a: `Free gives you all four tools with generous limits, ${free.minIntervalMinutes}-minute checks, email alerts, and a public status page. Pro makes your resources persistent, raises the monitor limit to ${pro.maxMonitors}, drops checks to ${pro.minIntervalMinutes} minute, and adds Slack / Discord / multi-channel alerts, custom headers, and an unbranded status page.`,
+                a: `Free gives you all four tools with generous limits, ${free.minIntervalMinutes}-minute checks, email alerts, and a public status page. Pro makes your resources persistent, raises the monitor limit to ${pro.maxMonitors}, drops checks to ${pro.minIntervalMinutes} minute, and adds Slack / Discord / multi-channel alerts, custom headers, and an unbranded status page. Pro is a one-time ₹99 payment — no subscriptions, no renewals.`,
               },
               {
                 q: "How does the webhook inspector work?",
@@ -321,12 +260,9 @@ export default function Home() {
               <span className="text-t1">by</span>
             </span>
             <span className="max-w-[280px] font-mono text-xs leading-relaxed text-t3">
-              Four developer tools, no signup. Built for developers with other
-              things to do.
+              Four developer tools, no signup. Built for developers with other things to do.
             </span>
-            <span className="mt-1 font-mono text-[11px] text-t3">
-              Powered by Cloudflare Workers · © 2026
-            </span>
+            <span className="mt-1 font-mono text-[11px] text-t3">Powered by Cloudflare Workers · © 2026</span>
           </div>
           <nav className="flex flex-wrap gap-[22px] font-mono text-[12.5px] text-t2">
             <Link href="/mock" className="hover:text-brand">
@@ -422,29 +358,18 @@ function FeatureCard({
   children: React.ReactNode;
 }) {
   return (
-    <Link
-      href={href}
-      className={`flex flex-col gap-3.5 bg-s1 p-7 transition-colors hover:bg-s2 ${
-        span ? "sm:col-span-2" : ""
-      }`}
-    >
+    <Link href={href} className={`flex flex-col gap-3.5 bg-s1 p-7 transition-colors hover:bg-s2 ${span ? "sm:col-span-2" : ""}`}>
       <div className="flex items-center gap-3">
         <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-sm bg-brand-dim text-brand">
           <ToolIcon kind={icon} />
         </div>
         <div>
-          <div className="font-mono text-[10.5px] tracking-[0.08em] text-t3">
-            {n}
-          </div>
-          <h3 className="text-[17px] font-semibold tracking-[-0.01em] text-t1">
-            {title}
-          </h3>
+          <div className="font-mono text-[10.5px] tracking-[0.08em] text-t3">{n}</div>
+          <h3 className="text-[17px] font-semibold tracking-[-0.01em] text-t1">{title}</h3>
         </div>
       </div>
       <p className="text-sm leading-relaxed text-t2">{desc}</p>
-      <div className="mt-auto flex items-center gap-2 rounded-sm border border-b1 bg-s2 px-3 py-[11px]">
-        {children}
-      </div>
+      <div className="mt-auto flex items-center gap-2 rounded-sm border border-b1 bg-s2 px-3 py-[11px]">{children}</div>
     </Link>
   );
 }
@@ -476,11 +401,7 @@ function Pill({ up }: { up: boolean }) {
         up ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
       }`}
     >
-      <span
-        className={`h-[5px] w-[5px] rounded-full ${
-          up ? "bg-success" : "bg-destructive"
-        }`}
-      />
+      <span className={`h-[5px] w-[5px] rounded-full ${up ? "bg-success" : "bg-destructive"}`} />
       {up ? "UP" : "DOWN"}
     </span>
   );
@@ -500,14 +421,7 @@ function MiniSpark() {
     .join(" ");
   return (
     <svg width={w} height={h} className="block shrink-0">
-      <polyline
-        points={pts}
-        fill="none"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="stroke-success"
-      />
+      <polyline points={pts} fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-success" />
     </svg>
   );
 }
@@ -517,33 +431,39 @@ function PlanCard({
   price,
   sub,
   recommended,
+  limitedOffer,
   children,
 }: {
   name: string;
   price: string;
   sub: string;
   recommended?: boolean;
+  limitedOffer?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className={`relative flex flex-col gap-5 rounded-md bg-s1 p-7 ${
-        recommended ? "border border-t-2 border-brand" : "border border-b1"
-      }`}
-    >
+    <div className={`relative flex flex-col gap-5 rounded-md bg-s1 p-7 ${recommended ? "border border-t-2 border-brand" : "border border-b1"}`}>
       {recommended && (
-        <div className="absolute right-4 top-4 rounded-[2px] bg-brand-dim px-2 py-[3px] font-mono text-[10px] tracking-wider text-brand">
-          RECOMMENDED
-        </div>
+        <HideForPro>
+          <div className="absolute right-4 top-4 rounded-[2px] bg-brand-dim px-2 py-[3px] font-mono text-[10px] tracking-wider text-brand">
+            RECOMMENDED
+          </div>
+        </HideForPro>
       )}
       <div>
         <div className="mb-2 font-mono text-[13px] text-t2">{name}</div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[40px] font-semibold leading-none tracking-[-0.03em] text-t1">
-            {price}
-          </span>
+          <span className="text-[40px] font-semibold leading-none tracking-[-0.03em] text-t1">{price}</span>
           <span className="font-mono text-[13px] text-t3">{sub}</span>
         </div>
+        {limitedOffer && (
+          <HideForPro>
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-[3px] border border-warning/30 bg-warning/10 px-2 py-[3px] font-mono text-[10px] tracking-wider text-warning">
+              <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-warning" />
+              LIMITED TIME OFFER
+            </div>
+          </HideForPro>
+        )}
       </div>
       {children}
     </div>

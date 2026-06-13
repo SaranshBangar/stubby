@@ -1,42 +1,43 @@
 import { getEnv } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/token";
 import { ok, unauthorized, badRequest } from "@/lib/http";
-import { getStripe } from "@/lib/stripe";
+import { createOrder } from "@/lib/cashfree";
 
 /**
- * ★ STRIPE FLOW - step 1 of 3 (create Checkout session).
- *
- * The anonymous owner_token is the user's identity. To upgrade, we open a
- * Stripe Checkout session and stash that token in:
- *   - client_reference_id, and
- *   - subscription metadata,
- * so the webhook (step 3) can map the completed payment back to the token
- * and grant Pro. No email/password is collected by us - Stripe handles the
- * payment identity; the localStorage token stays the app identity.
+ * Creates a Cashfree order for one-time ₹99 lifetime Pro purchase.
+ * Returns { payment_session_id, order_id } which the frontend uses with
+ * Cashfree.js Drop-in to open the payment checkout.
  */
 export async function POST(req: Request) {
   const token = getTokenFromRequest(req);
   if (!token) return unauthorized();
 
   const env = getEnv() as Record<string, string | undefined>;
-  const secret = env.STRIPE_SECRET_KEY;
-  const price = env.STRIPE_PRICE_ID;
+  const appId = env.CASHFREE_APP_ID;
+  const secretKey = env.CASHFREE_SECRET_KEY;
   const appUrl = env.APP_URL ?? "http://localhost:3000";
-  if (!secret || !price) {
-    return badRequest("Stripe not configured (STRIPE_SECRET_KEY/STRIPE_PRICE_ID)");
+
+  if (!appId || !secretKey) {
+    return badRequest("Cashfree not configured (CASHFREE_APP_ID / CASHFREE_SECRET_KEY)");
   }
 
-  const stripe = getStripe(secret);
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    line_items: [{ price, quantity: 1 }],
-    // Link this payment to the anonymous token (read back in the webhook).
-    client_reference_id: token,
-    subscription_data: { metadata: { owner_token: token } },
-    metadata: { owner_token: token },
-    success_url: `${appUrl}/mock?upgraded=1`,
-    cancel_url: `${appUrl}/#pricing`,
+  // Cashfree requires https for return_url / notify_url. On local dev
+  // (http://localhost) fall back to the production https origin so order
+  // creation succeeds — the local flow then polls /api/verify-payment instead
+  // of relying on a Cashfree-delivered webhook (Cashfree can't reach localhost).
+  const publicBase = appUrl.startsWith("https://") ? appUrl : "https://stubby.site";
+
+  const order = await createOrder({
+    appId,
+    secretKey,
+    ownerToken: token,
+    amount: 99,
+    returnUrl: `${publicBase}/mock?upgraded=1`,
+    webhookUrl: `${publicBase}/api/cashfree/webhook`,
   });
 
-  return ok({ url: session.url });
+  return ok({
+    payment_session_id: order.payment_session_id,
+    order_id: order.order_id,
+  });
 }

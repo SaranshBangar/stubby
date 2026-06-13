@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { MonitorForm } from "@/components/MonitorForm";
 import { MonitorList } from "@/components/MonitorList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProAwareSubtitle } from "@/components/ProAwareSubtitle";
 
 export default function MonitorPage() {
   const token = useOwnerToken();
@@ -28,10 +29,20 @@ export default function MonitorPage() {
         <h1 className="text-[22px] font-semibold tracking-tight text-t1">
           Uptime Monitors
         </h1>
-        <p className="mt-1 text-[13.5px] text-t2">
-          We ping your URL on schedule and email you the moment it goes down. No
-          signup.
-        </p>
+        <ProAwareSubtitle
+          free={
+            <>
+              We ping your URL on schedule and email you the moment it goes
+              down. No signup.
+            </>
+          }
+          pro={
+            <>
+              We ping your URL as often as every minute and alert you the moment
+              it goes down. Thanks for going Pro!
+            </>
+          }
+        />
 
         <Card className="mt-6 bg-s1">
           <CardHeader className="border-b border-b1">

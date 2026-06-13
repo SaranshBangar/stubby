@@ -42,7 +42,7 @@ custom_domain = true
 crons = ["* * * * *"]
 
 # ── Public (non-secret) vars ─────────────────────────────────────────
-# Secrets (RESEND_API_KEY, STRIPE_*) go in .dev.vars locally and via
-# `wrangler secret put NAME` in production — NOT here.
+# Secrets (RESEND_API_KEY, CASHFREE_APP_ID, CASHFREE_SECRET_KEY) go in .dev.vars
+# locally and via `wrangler secret put NAME` in production — NOT here.
 [vars]
 APP_URL = "https://stubby.site"

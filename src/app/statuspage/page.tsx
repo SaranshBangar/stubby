@@ -9,6 +9,7 @@ import {
 } from "@/components/StatusPageForm";
 import { StatusPageList } from "@/components/StatusPageList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProAwareSubtitle } from "@/components/ProAwareSubtitle";
 
 export default function StatusPageBuilderPage() {
   const token = useOwnerToken(); // mint/restore anon identity
@@ -35,10 +36,20 @@ export default function StatusPageBuilderPage() {
         <h1 className="text-[22px] font-semibold tracking-tight text-t1">
           Status Pages
         </h1>
-        <p className="mt-1 text-[13.5px] text-t2">
-          Publish a public page showing the live state and uptime history of
-          the monitors you choose. No signup.
-        </p>
+        <ProAwareSubtitle
+          free={
+            <>
+              Publish a public page showing the live state and uptime history
+              of the monitors you choose. No signup.
+            </>
+          }
+          pro={
+            <>
+              Your Pro status pages run Stubby-branding-free and stay live for
+              good. Thanks for being a Pro — publish away.
+            </>
+          }
+        />
 
         <Card className="mt-6 bg-s1">
           <CardHeader className="border-b border-b1">

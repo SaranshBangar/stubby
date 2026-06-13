@@ -8,6 +8,7 @@ import { MockForm } from "@/components/MockForm";
 import { MockList } from "@/components/MockList";
 import { ImportOpenApiModal } from "@/components/ImportOpenApiModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProAwareSubtitle } from "@/components/ProAwareSubtitle";
 
 export default function MockPage() {
   const token = useOwnerToken(); // mint/restore anon identity
@@ -29,9 +30,20 @@ export default function MockPage() {
         <h1 className="text-[22px] font-semibold tracking-tight text-t1">
           Mock Builder
         </h1>
-        <p className="mt-1 text-[13.5px] text-t2">
-          Paste a JSON response body and get a stable, shareable URL. No signup.
-        </p>
+        <ProAwareSubtitle
+          free={
+            <>
+              Paste a JSON response body and get a stable, shareable URL. No
+              signup.
+            </>
+          }
+          pro={
+            <>
+              Paste a JSON response body and get a permanent, shareable URL -
+              your Pro mocks never expire. Thanks for being a Pro!
+            </>
+          }
+        />
 
         <Card className="mt-6 bg-s1">
           <CardHeader className="border-b border-b1">

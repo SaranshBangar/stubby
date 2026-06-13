@@ -3,19 +3,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AuthMenu } from "@/components/AuthMenu";
+import { useTier } from "@/lib/useTier";
 
 // Wordmark: the orange Stubby mark next to "stub" (accent) + "by" (foreground).
 function Wordmark() {
   return (
     <span className="flex items-center gap-2">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/logo/stubby-mark.svg"
-        alt="Stubby"
-        width={20}
-        height={20}
-        className="h-5 w-5 shrink-0"
-      />
+      <img src="/logo/stubby-mark.svg" alt="Stubby" width={20} height={20} className="h-5 w-5 shrink-0" />
       <span className="font-mono text-[15px] font-medium tracking-tight">
         <span className="text-brand">stub</span>
         <span className="text-t1">by</span>
@@ -37,12 +32,9 @@ const TABS = [
  * `variant="tool"` shows the tab bar with an active underline + plan strip.
  * An orange hairline sits above the nav on every page.
  */
-export function SiteHeader({
-  variant = "landing",
-}: {
-  variant?: "landing" | "tool";
-}) {
+export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "tool" }) {
   const pathname = usePathname();
+  const { isPro, loading: tierLoading } = useTier();
 
   return (
     <>
@@ -61,9 +53,7 @@ export function SiteHeader({
                     key={href}
                     href={href}
                     className={`-mb-px flex items-center border-b-2 px-3.5 text-[13.5px] transition-colors ${
-                      active
-                        ? "border-brand font-medium text-t1"
-                        : "border-transparent text-t2 hover:text-t1"
+                      active ? "border-brand font-medium text-t1" : "border-transparent text-t2 hover:text-t1"
                     }`}
                   >
                     {label}
@@ -73,10 +63,19 @@ export function SiteHeader({
             </div>
             <div className="flex items-center gap-2.5">
               <AuthMenu />
-              <span className="font-mono text-xs text-t3">free plan</span>
-              <Button asChild size="sm">
-                <Link href="/#pricing">Go Pro</Link>
-              </Button>
+              {tierLoading ? null : isPro ? (
+                <span className="inline-flex items-center gap-1.5 rounded-[3px] border border-brand/30 bg-brand-dim px-2 py-[3px] font-mono text-[11px] font-medium tracking-wider text-brand">
+                  <span className="h-[5px] w-[5px] rounded-full bg-brand" />
+                  PRO
+                </span>
+              ) : (
+                <>
+                  <span className="font-mono text-xs text-t3">free plan</span>
+                  <Button asChild size="sm">
+                    <Link href="/#pricing">Go Pro</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         ) : (
@@ -87,7 +86,7 @@ export function SiteHeader({
             <nav className="flex items-center gap-2">
               <AuthMenu />
               <Button asChild size="sm">
-                <Link href="/mock">Open free tool</Link>
+                {isPro ? <Link href="/mock">Go to tools</Link> : <Link href="/mock">Open free tools</Link>}
               </Button>
             </nav>
           </div>

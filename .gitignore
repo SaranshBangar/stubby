@@ -17,3 +17,5 @@ src/cloudflare-env.d.ts
 .DS_Store
 *.log
 next-env.d.ts
+.claude/skills/cashfree-skills/
+.github/skills/cashfree-skills/

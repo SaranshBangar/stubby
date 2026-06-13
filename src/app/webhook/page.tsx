@@ -10,6 +10,7 @@ import {
 } from "@/components/WebhookList";
 import { WebhookRequestsPanel } from "@/components/WebhookRequestsPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProAwareSubtitle } from "@/components/ProAwareSubtitle";
 
 export default function WebhookPage() {
   const token = useOwnerToken(); // mint/restore anon identity
@@ -34,10 +35,21 @@ export default function WebhookPage() {
         <h1 className="text-[22px] font-semibold tracking-tight text-t1">
           Webhook Inspector
         </h1>
-        <p className="mt-1 text-[13.5px] text-t2">
-          Get a URL that captures anything sent to it - method, headers, body -
-          and watch requests arrive live. No signup.
-        </p>
+        <ProAwareSubtitle
+          free={
+            <>
+              Get a URL that captures anything sent to it - method, headers,
+              body - and watch requests arrive live. No signup.
+            </>
+          }
+          pro={
+            <>
+              Capture anything sent to your URL - method, headers, body - live.
+              Your Pro endpoints keep far more stored requests. Thanks for going
+              Pro!
+            </>
+          }
+        />
 
         <Card className="mt-6 bg-s1">
           <CardHeader className="border-b border-b1">

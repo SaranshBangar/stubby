@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { AlertChannelForm } from "@/components/AlertChannelForm";
 import { AlertChannelList } from "@/components/AlertChannelList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProAwareSubtitle } from "@/components/ProAwareSubtitle";
 
 export default function AlertsPage() {
   const token = useOwnerToken(); // mint/restore anon identity
@@ -28,10 +29,22 @@ export default function AlertsPage() {
         <h1 className="text-[22px] font-semibold tracking-tight text-t1">
           Alert Channels
         </h1>
-        <p className="mt-1 text-[13.5px] text-t2">
-          Get monitor alerts in Slack, Discord, or any webhook - in addition to
-          email. Attach channels to monitors when you create or edit them.
-        </p>
+        <ProAwareSubtitle
+          free={
+            <>
+              Get monitor alerts in Slack, Discord, or any webhook - in addition
+              to email. Attach channels to monitors when you create or edit
+              them.
+            </>
+          }
+          pro={
+            <>
+              Your Pro plan unlocks Slack, Discord & multi-channel alerts.
+              Attach channels to monitors when you create or edit them - thanks
+              for going Pro!
+            </>
+          }
+        />
 
         <Card className="mt-6 bg-s1">
           <CardHeader className="border-b border-b1">
